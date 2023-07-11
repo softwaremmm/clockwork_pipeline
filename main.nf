@@ -18,6 +18,7 @@ process run_clockwork{
         path("Outdir/1/final.vcf"), emit: final_vcf
         path("Outdir/1/samtools.vcf"), emit: samtools_vcf
         path("Outdir/1/map.bam"), emit: map_bam
+        path("Outdir/1/map.bam.bai"), emit: map_bam_bai
     beforeScript 'chmod 777 .'
 
     log.info "${params.knowledge_bucket}/clockwork/tb/Ref_prepare"
@@ -98,6 +99,6 @@ workflow{
         .stripIndent()
 
         Channel
-            .fromFilePairs("$params.sample_read/*reads{1,2}.fq.gz", checkIfExists:true, flat:true)
+            .fromFilePairs("$params.sample_read/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
             | clockwork
 }
