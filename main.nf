@@ -7,12 +7,23 @@ nextflow.enable.dsl=2
 ANSI_GREEN = "\033[1;32m"
 ANSI_RESET = "\033[0m"
 
+params.help = ''
+params.sample_reads = ''
+params.species = 'tb'
+
+if (workflow.profile != 'kubernetes') {
+    params.knowledge_bucket = "$projectDir/data/knowledge"
+} else {
+    params.knowledge_bucket = "/data/knowledge"
+}
+
 process run_clockwork{
     debug true
+
     input:
         tuple val(x), path(sample_reads1), path(sample_reads2)
     output:
-        path("Outdir/1/cortex.vcf"), emit: cortex_vcf
+        path("Outdir/1/cortex.vcf"), emit: cortex_vcf, optional: true
         path("Outdir/1/final.gvcf"), emit: final_gvcf
         path("Outdir/1/final.gvcf.fasta"), emit: final_gvcf_fasta
         path("Outdir/1/final.vcf"), emit: final_vcf
@@ -21,7 +32,7 @@ process run_clockwork{
         path("Outdir/1/map.bam.bai"), emit: map_bam_bai
     beforeScript 'chmod 777 .'
 
-    log.info "${params.knowledge_bucket}/clockwork/tb/Ref_prepare"
+    container 'lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:latest'
     containerOptions "-v ${params.knowledge_bucket}/clockwork/tb/Ref_prepare:/Ref_prepare:ro -v ./Outdir:/Outdir:rw"
 
     script:
@@ -39,6 +50,7 @@ process run_clockwork{
         touch ./Outdir/1/final.vcf
         touch ./Outdir/1/samtools.vcf
         touch ./Outdir/1/map.bam
+        touch ./Outdir/1/map.bam.bai
         """
 }
 

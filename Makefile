@@ -1,8 +1,8 @@
 run-nextflow-with-stub:
-	nextflow run . -profile docker -stub --sample_read .
+	nextflow run . -profile local -stub --sample_read .
 
 run-nextflow:
-	nextflow run . -profile docker --sample_read .
+	nextflow run . -profile local --sample_read .
 
 clean:
 	find . -type d -name .nextflow | xargs rm -rf

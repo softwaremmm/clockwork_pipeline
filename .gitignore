@@ -162,5 +162,7 @@ cython_debug/
 work/
 .nextflow/
 
+.DS_Store
+
 *fastq.gz
 *fq.gz
