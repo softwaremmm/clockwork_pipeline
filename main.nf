@@ -12,9 +12,9 @@ params.sample_reads = ''
 params.species = 'tb'
 
 if (workflow.profile != 'kubernetes') {
-    params.knowledge_bucket = "$projectDir/data/knowledge"
+    params.knowledge_bucket = "$projectDir/data/relatedness/knowledge"
 } else {
-    params.knowledge_bucket = "/data/knowledge"
+    params.knowledge_bucket = "/data/relatedness/knowledge"
 }
 
 process run_clockwork{
@@ -107,6 +107,7 @@ workflow{
         Running with profile  ${ANSI_GREEN}${workflow.profile}${ANSI_RESET}
         Running as user       ${ANSI_GREEN}${workflow.userName}${ANSI_RESET}
         Launch directory      ${ANSI_GREEN}${workflow.launchDir}${ANSI_RESET}
+        Project directory     ${ANSI_GREEN}${projectDir}${ANSI_RESET}
         """
         .stripIndent()
 
