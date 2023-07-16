@@ -38,6 +38,9 @@ process run_clockwork{
     script:
         """
         clockwork variant_call_one_sample --keep_bam --no_trim /Ref_prepare /Outdir/1/ ${sample_reads1} ${sample_reads2}
+        if [ ! -f ".Outdir/1/cortex.vcf" ]; then
+            touch ./Outdir/1/cortex.vcf
+        fi
         """
     stub:
         """
