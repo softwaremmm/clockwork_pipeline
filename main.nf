@@ -30,6 +30,8 @@ process run_clockwork{
         path("Outdir/1/samtools.vcf"), emit: samtools_vcf
         path("Outdir/1/map.bam"), emit: map_bam
         path("Outdir/1/map.bam.bai"), emit: map_bam_bai
+        path("Outdir/1/tb_clockwork_report.json"), emit: tb_clockwork_report_json
+        path("Outdir/1/tb_clockwork_error.json"), emit: tb_clockwork_error_json
     beforeScript 'chmod 777 .'
 
     container 'lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:latest'
@@ -41,6 +43,8 @@ process run_clockwork{
         if [ ! -f ".Outdir/1/cortex.vcf" ]; then
             touch ./Outdir/1/cortex.vcf
         fi
+        touch ./Outdir/1/tb_clockwork_report.json
+        touch ./Outdir/1/tb_clockwork_error.json
         """
     stub:
         """
@@ -54,6 +58,8 @@ process run_clockwork{
         touch ./Outdir/1/samtools.vcf
         touch ./Outdir/1/map.bam
         touch ./Outdir/1/map.bam.bai
+        touch ./Outdir/1/tb_clockwork_report.json
+        touch ./Outdir/1/tb_clockwork_error.json
         """
 }
 
@@ -73,6 +79,8 @@ workflow clockwork{
         samtools_vcf = run_clockwork.out.samtools_vcf
         map_bam = run_clockwork.out.map_bam
         map_bam_bai = run_clockwork.out.map_bam_bai
+        tb_clockwork_report_json = run_clockwork.out.tb_clockwork_report_json
+        tb_clockwork_error_json = run_clockwork.out.tb_clockwork_error_json
 }
 
 
