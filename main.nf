@@ -69,6 +69,7 @@ workflow clockwork{
         final_vcf = run_clockwork.out.final_vcf
         samtools_vcf = run_clockwork.out.samtools_vcf
         map_bam = run_clockwork.out.map_bam
+        map_bam_bai = run_clockwork.out.map_bam_bai
 }
 
 
