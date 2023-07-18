@@ -8,7 +8,7 @@ Nextflow Pipeline for clockwork, mycobacterial_mapping
 nextflow run . -profile local --sample_read ./data/inputs/1/1/
 ```
 
-Under the `work` directory you output similar to the following
+Under the `work` directory your output should be similar to the following
 ```
 work
 └── 51
