@@ -43,3 +43,5 @@ work
         ├── tuberculosis_1_1.fastq.gz -> /Users/Marc/temp/clockwork_pipeline/data/inputs/1/1/tuberculosis_1_1.fastq.gz
         └── tuberculosis_1_2.fastq.gz -> /Users/Marc/temp/clockwork_pipeline/data/inputs/1/1/tuberculosis_1_2.fastq.gz
 ```
+
+In this example you are getting an empty cortex.vcf as the sample files do not contain enough data
