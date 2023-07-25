@@ -11,7 +11,7 @@ params.help = ''
 params.sample_reads = ''
 params.species = 'tb'
 
-if (workflow.profile != 'kubernetes') {
+if ("$workflow.profile" != 'kubernetes') {
     params.knowledge_bucket = "$projectDir/data/relatedness/knowledge"
 } else {
     params.knowledge_bucket = "/data/relatedness/knowledge"
@@ -25,7 +25,7 @@ process run_clockwork{
     output:
         path("Outdir/1/cortex.vcf"), emit: cortex_vcf, optional: true
         path("Outdir/1/final.gvcf"), emit: final_gvcf
-        path("Outdir/1/final.gvcf.fasta"), emit: final_gvcf_fasta
+        path("Outdir/1/final.fasta"), emit: final_gvcf_fasta
         path("Outdir/1/final.vcf"), emit: final_vcf
         path("Outdir/1/samtools.vcf"), emit: samtools_vcf
         path("Outdir/1/map.bam"), emit: map_bam
@@ -43,6 +43,7 @@ process run_clockwork{
         if [ ! -f ".Outdir/1/cortex.vcf" ]; then
             touch ./Outdir/1/cortex.vcf
         fi
+        mv final.gvcf.fasta final.fasta
         touch ./Outdir/1/tb_clockwork_report.json
         touch ./Outdir/1/tb_clockwork_error.json
         """
@@ -53,7 +54,7 @@ process run_clockwork{
         mkdir -p ./Outdir/1
         touch ./Outdir/1/cortex.vcf
         touch ./Outdir/1/final.gvcf
-        touch ./Outdir/1/final.gvcf.fasta
+        touch ./Outdir/1/final.fasta
         touch ./Outdir/1/final.vcf
         touch ./Outdir/1/samtools.vcf
         touch ./Outdir/1/map.bam
@@ -74,7 +75,7 @@ workflow clockwork{
     emit:
         cortex_vcf = run_clockwork.out.cortex_vcf
         final_gvcf = run_clockwork.out.final_gvcf
-        final_gvcf_fasta = run_clockwork.out.final_gvcf_fasta
+        final_fasta = run_clockwork.out.final_fasta
         final_vcf = run_clockwork.out.final_vcf
         samtools_vcf = run_clockwork.out.samtools_vcf
         map_bam = run_clockwork.out.map_bam
