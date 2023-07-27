@@ -10,67 +10,64 @@ ANSI_RESET = "\033[0m"
 params.help = ''
 params.sample_reads = ''
 params.species = 'tb'
+params.ref_files = ''
 
-if ("$workflow.profile" != 'kubernetes') {
-    params.knowledge_bucket = "$projectDir/data/relatedness/knowledge"
-} else {
-    params.knowledge_bucket = "/data/relatedness/knowledge"
-}
+project_dir = projectDir
+outdir = "outdir"
 
 process run_clockwork{
+    container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:latest"
     debug true
 
     input:
         tuple val(x), path(sample_reads1), path(sample_reads2)
+        path(ref_files)
     output:
-        path("Outdir/1/cortex.vcf"), emit: cortex_vcf, optional: true
-        path("Outdir/1/final.gvcf"), emit: final_gvcf
-        path("Outdir/1/final.fasta"), emit: final_gvcf_fasta
-        path("Outdir/1/final.vcf"), emit: final_vcf
-        path("Outdir/1/samtools.vcf"), emit: samtools_vcf
-        path("Outdir/1/map.bam"), emit: map_bam
-        path("Outdir/1/map.bam.bai"), emit: map_bam_bai
-        path("Outdir/1/tb_clockwork_report.json"), emit: tb_clockwork_report_json
-        path("Outdir/1/tb_clockwork_error.json"), emit: tb_clockwork_error_json
+        path("${outdir}/cortex.vcf"), emit: cortex_vcf, optional: true
+        path("${outdir}/final.gvcf"), emit: final_gvcf
+        path("${outdir}/final.fasta"), emit: final_fasta
+        path("${outdir}/final.vcf"), emit: final_vcf
+        path("${outdir}/samtools.vcf"), emit: samtools_vcf
+        path("${outdir}/map.bam"), emit: map_bam
+        path("${outdir}/map.bam.bai"), emit: map_bam_bai
+        path("${outdir}/tb_clockwork_report.json"), emit: tb_clockwork_report_json
+        path("${outdir}/tb_clockwork_error.json"), emit: tb_clockwork_error_json
     beforeScript 'chmod 777 .'
-
-    container 'lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:latest'
-    containerOptions "-v ${params.knowledge_bucket}/clockwork/tb/Ref_prepare:/Ref_prepare:ro -v ./Outdir:/Outdir:rw"
 
     script:
         """
-        clockwork variant_call_one_sample --keep_bam --no_trim /Ref_prepare /Outdir/1/ ${sample_reads1} ${sample_reads2}
-        if [ ! -f ".Outdir/1/cortex.vcf" ]; then
-            touch ./Outdir/1/cortex.vcf
+        clockwork variant_call_one_sample --keep_bam --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
+        if [ ! -f "cortex.vcf" ]; then
+            touch ${outdir}/ cortex.vcf
         fi
-        mv final.gvcf.fasta final.fasta
-        touch ./Outdir/1/tb_clockwork_report.json
-        touch ./Outdir/1/tb_clockwork_error.json
+        mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
+        touch ${outdir}/tb_clockwork_report.json
+        touch ${outdir}/tb_clockwork_error.json
         """
     stub:
         """
         echo $PWD
-        mkdir -p ./Outdir
-        mkdir -p ./Outdir/1
-        touch ./Outdir/1/cortex.vcf
-        touch ./Outdir/1/final.gvcf
-        touch ./Outdir/1/final.fasta
-        touch ./Outdir/1/final.vcf
-        touch ./Outdir/1/samtools.vcf
-        touch ./Outdir/1/map.bam
-        touch ./Outdir/1/map.bam.bai
-        touch ./Outdir/1/tb_clockwork_report.json
-        touch ./Outdir/1/tb_clockwork_error.json
+        mkdir -p "${outdir}"
+        touch "${outdir}/cortex.vcf"
+        touch "${outdir}/final.gvcf"
+        touch "${outdir}/final.gvcf.fasta"
+        touch "${outdir}/final.vcf"
+        touch "${outdir}/samtools.vcf"
+        touch "${outdir}/map.bam"
+        touch "${outdir}/map.bam.bai"
+        touch "${outdir}/tb_clockwork_report.json"
+        touch "${outdir}/tb_clockwork_error.json"
         """
 }
 
 workflow clockwork{
     take:
     reads
+    ref_files
 
     main:
 
-        run_clockwork(reads)
+        run_clockwork(reads, ref_files)
     
     emit:
         cortex_vcf = run_clockwork.out.cortex_vcf
@@ -99,6 +96,7 @@ workflow{
             ------------------------------------------------------------------------
             --sample_reads  Directory holding the fastq files *reads{1,2}.fq.gz
             --species       Name of the species this belongs to. Default = 'tb'
+            --ref_files     Location of the reference genome pre prepared files
             """
             .stripIndent()
             exit(0)
@@ -114,6 +112,7 @@ workflow{
         ------------------------------------------------------------------------
         --sample_read    $params.sample_read
         --species        $params.species
+        --ref_files      $params.ref_files
 
         Runtime data:
         ------------------------------------------------------------------------
@@ -124,7 +123,6 @@ workflow{
         """
         .stripIndent()
 
-        Channel
-            .fromFilePairs("$params.sample_read/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
-            | clockwork
+        read_ch = Channel.fromFilePairs("$params.sample_read/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
+        clockwork(read_ch, params.ref_files)
 }
