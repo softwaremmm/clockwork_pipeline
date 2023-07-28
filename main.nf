@@ -94,7 +94,7 @@ workflow{
 
             Parameters:
             ------------------------------------------------------------------------
-            --sample_reads  Directory holding the fastq files *reads{1,2}.fq.gz
+            --sample_read   Directory holding the fastq files *reads{1,2}.fq.gz
             --species       Name of the species this belongs to. Default = 'tb'
             --ref_files     Location of the reference genome pre prepared files
             """
