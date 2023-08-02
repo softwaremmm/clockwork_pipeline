@@ -17,6 +17,8 @@ outdir = "outdir"
 
 process run_clockwork{
     container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:latest"
+    cpus = 6
+    memory = "16GB"
     debug true
 
     input:
