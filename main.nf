@@ -16,7 +16,7 @@ project_dir = projectDir
 outdir = "outdir"
 
 process run_clockwork{
-    container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:latest"
+    container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:dev"
     cpus = 1
     memory = "12GB"
     debug true
