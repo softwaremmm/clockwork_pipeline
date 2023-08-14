@@ -16,7 +16,7 @@ project_dir = projectDir
 outdir = "outdir"
 
 process run_clockwork{
-    container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:latest"
+    container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:dev"
     cpus = 1
     memory = "12GB"
     debug true
@@ -38,6 +38,14 @@ process run_clockwork{
 
     script:
         """
+        # FOR DEV PURPOSES ONLY
+
+        echo "Running with kb8"
+        s3fs "$WORKSPACE-dirtydata" /workspace/buckets/upload_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
+        s3fs "$WORKSPACE-readyforprocessing" /workspace/buckets/input_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
+        s3fs "$WORKSPACE-output" /workspace/buckets/output_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
+        s3fs "$WORKSPACE-relatedness" /workspace/buckets/relatedness_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
+
         clockwork variant_call_one_sample --keep_bam --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
         if [ ! -f "cortex.vcf" ]; then
             touch ${outdir}/ cortex.vcf
