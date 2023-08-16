@@ -38,14 +38,12 @@ process run_clockwork{
 
     script:
         """
-        # FOR DEV PURPOSES ONLY
-
-        echo "Running with kb8"
-        s3fs "$WORKSPACE-dirtydata" /workspace/buckets/upload_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
-        s3fs "$WORKSPACE-readyforprocessing" /workspace/buckets/input_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
-        s3fs "$WORKSPACE-output" /workspace/buckets/output_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
-        s3fs "$WORKSPACE-relatedness" /workspace/buckets/relatedness_bucket -o passwd_file=/workspace/project/s3fs_password_file -o url=https://lrbvkel2wjot.compat.objectstorage.uk-london-1.oraclecloud.com -o use_path_request_style
-
+        if [ ${workflow.profile} == 'kubernetes' ]
+        then
+            echo "Running with kubernetes"
+            /bin/bash ${projectDir}/lib/s3fs_setup.sh $WORKSPACE
+        fi
+        
         clockwork variant_call_one_sample --keep_bam --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
         if [ ! -f "cortex.vcf" ]; then
             touch ${outdir}/ cortex.vcf
