@@ -1,1 +1,2 @@
 main.nf
+tb_clockwork_report.json.template

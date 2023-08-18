@@ -32,7 +32,6 @@ process run_clockwork{
         path("${outdir}/samtools.vcf"), emit: samtools_vcf
         path("${outdir}/map.bam"), emit: map_bam
         path("${outdir}/map.bam.bai"), emit: map_bam_bai
-        path("${outdir}/tb_clockwork_report.json"), emit: tb_clockwork_report_json
         path("${outdir}/tb_clockwork_error.json"), emit: tb_clockwork_error_json
     beforeScript 'chmod 777 .'
 
@@ -49,7 +48,6 @@ process run_clockwork{
             touch ${outdir}/ cortex.vcf
         fi
         mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
-        touch ${outdir}/tb_clockwork_report.json
         touch ${outdir}/tb_clockwork_error.json
         """
     stub:
@@ -63,8 +61,45 @@ process run_clockwork{
         touch "${outdir}/samtools.vcf"
         touch "${outdir}/map.bam"
         touch "${outdir}/map.bam.bai"
-        touch "${outdir}/tb_clockwork_report.json"
         touch "${outdir}/tb_clockwork_error.json"
+        """
+}
+
+process calc_counts{
+    container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:dev"
+    cpus = 1
+    memory = "12GB"
+    debug true
+
+    input:
+        path(gvcf_file)
+        path(fasta_file)
+        path(report_template)
+    output:
+        path("tb_clockwork_report.json"), emit: tb_clockwork_report_json
+
+    script:
+        """
+        if [ ${workflow.profile} == 'kubernetes' ]
+        then
+            echo "Running with kubernetes"
+            /bin/bash ${projectDir}/lib/s3fs_setup.sh $WORKSPACE
+        fi
+
+        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO\\t[%GT]\\t[%DP4]\\t[%COV]\\n'  ${gvcf_file} | \
+        awk 'BEGIN {FS=OFS="\\t"} {split(\$7, arr1, ","); split(\$8, arr2, ","); \$7=arr1[1]; \$8=arr1[2]; \$9=arr1[3]; \$10=arr1[4]; \$11=arr2[1]; \$12=arr2[2]; print}'  | \
+        awk -F'\\t' '(\$7 + \$8 >= 10 && \$9 > 1 && \$10 > 1) || (\$11 > 1  && \$12>10) || (\$12>1  && \$11>10) ' > het_list
+        export het_count=\$(cat het_list | wc -l | xargs)
+        export fixed_coverage=\$(tail -n +2 ${fasta_file} | grep -oE "[NXOZ\\-]" | wc -l | xargs)
+        echo "Het Count: \$het_count"
+        echo "Fixed coverage: \$fixed_coverage"
+
+        cat $report_template | envsubst > "tb_clockwork_report.json"
+        """
+
+    stub:
+        """
+        touch "tb_clockwork_report.json"
         """
 }
 
@@ -76,6 +111,7 @@ workflow clockwork{
     main:
 
         run_clockwork(reads, ref_files)
+        calc_counts(run_clockwork.out.final_gvcf, run_clockwork.out.final_fasta, "${moduleDir}/tb_clockwork_report.json.template")
     
     emit:
         cortex_vcf = run_clockwork.out.cortex_vcf
@@ -85,7 +121,7 @@ workflow clockwork{
         samtools_vcf = run_clockwork.out.samtools_vcf
         map_bam = run_clockwork.out.map_bam
         map_bam_bai = run_clockwork.out.map_bam_bai
-        tb_clockwork_report_json = run_clockwork.out.tb_clockwork_report_json
+        tb_clockwork_report_json = calc_counts.out.tb_clockwork_report_json
         tb_clockwork_error_json = run_clockwork.out.tb_clockwork_error_json
 }
 
