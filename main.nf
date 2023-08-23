@@ -25,14 +25,14 @@ process run_clockwork{
         tuple val(x), path(sample_reads1), path(sample_reads2)
         path(ref_files)
     output:
-        path("${outdir}/cortex.vcf"), emit: cortex_vcf, optional: true
-        path("${outdir}/final.gvcf"), emit: final_gvcf
+        path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf, optional: true
+        path("${outdir}/alternate.gvcf"), emit: final_gvcf
         path("${outdir}/final.fasta"), emit: final_fasta
         path("${outdir}/final.vcf"), emit: final_vcf
-        path("${outdir}/samtools.vcf"), emit: samtools_vcf
-        path("${outdir}/map.bam"), emit: map_bam
-        path("${outdir}/map.bam.bai"), emit: map_bam_bai
-        path("${outdir}/tb_clockwork_error.json"), emit: tb_clockwork_error_json
+        path("${outdir}/alternate-samtools.vcf"), emit: samtools_vcf
+        path("${outdir}/final.bam"), emit: map_bam
+        path("${outdir}/final.bam.bai"), emit: map_bam_bai
+        path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
     beforeScript 'chmod 777 .'
 
     script:
@@ -47,21 +47,27 @@ process run_clockwork{
         if [ ! -f "cortex.vcf" ]; then
             touch ${outdir}/ cortex.vcf
         fi
+
+        mv ${outdir}/cortex.vcf ${outdir}/alternate-cortex.vcf
+        mv ${outdir}/final.gvcf ${outdir}/alternate.gvcf
         mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
-        touch ${outdir}/tb_clockwork_error.json
+        mv ${outdir}/samtools.vcf ${outdir}/alternate-samtools.vcf
+        mv ${outdir}/map.bam ${outdir}/final.bam
+        mv ${outdir}/map.bam.bai ${outdir}/final.bam.bai
+        touch ${outdir}/genome_creation_error.json
         """
     stub:
         """
         echo $PWD
         mkdir -p "${outdir}"
-        touch "${outdir}/cortex.vcf"
-        touch "${outdir}/final.gvcf"
-        touch "${outdir}/final.gvcf.fasta"
+        touch "${outdir}/alternate-cortex.vcf"
+        touch "${outdir}/alternate.gvcf"
+        touch "${outdir}/final.fasta"
         touch "${outdir}/final.vcf"
-        touch "${outdir}/samtools.vcf"
-        touch "${outdir}/map.bam"
-        touch "${outdir}/map.bam.bai"
-        touch "${outdir}/tb_clockwork_error.json"
+        touch "${outdir}/alternate-samtools.vcf"
+        touch "${outdir}/final.bam"
+        touch "${outdir}/final.bam.bai"
+        touch "${outdir}/genome_creation_error.json"
         """
 }
 
@@ -76,7 +82,7 @@ process calc_counts{
         path(fasta_file)
         path(report_template)
     output:
-        path("tb_clockwork_report.json"), emit: tb_clockwork_report_json
+        path("genome_creation_report.json"), emit: tb_clockwork_report_json
 
     script:
         """
@@ -98,12 +104,12 @@ process calc_counts{
         echo "Coverage: \$coverage"
         echo "Fixed coverage percentage: \$fixed_coverage_percentage"
 
-        cat $report_template | envsubst > "tb_clockwork_report.json"
+        cat $report_template | envsubst > "genome_creation_report.json"
         """
 
     stub:
         """
-        touch "tb_clockwork_report.json"
+        touch "genome_creation_report.json"
         """
 }
 
