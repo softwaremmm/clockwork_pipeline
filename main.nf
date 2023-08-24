@@ -20,6 +20,9 @@ process run_clockwork{
     cpus = 1
     memory = "12GB"
     debug true
+    pod label: "name", value: "clockwork:run_clockwork"
+    pod label: "sample_id", value: "${params.sample_id}"
+    pod label: "run_id", value: "${params.run_id}"
 
     input:
         tuple val(x), path(sample_reads1), path(sample_reads2)
@@ -76,6 +79,9 @@ process calc_counts{
     cpus = 1
     memory = "12GB"
     debug true
+    pod label: "name", value: "clockwork:calc_counts"
+    pod label: "sample_id", value: "${params.sample_id}"
+    pod label: "run_id", value: "${params.run_id}"
 
     input:
         path(gvcf_file)
