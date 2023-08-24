@@ -98,7 +98,7 @@ process calc_counts{
         export het_count=\$(cat het_list | wc -l | xargs)
         export fixed_coverage=\$(tail -n +2 ${fasta_file} | grep -oE "[NXOZ\\-]" | wc -l | xargs)
         export coverage=\$(tail -n +2 ${fasta_file} | tr -d '[:space:]' | wc -c | xargs)
-        export fixed_coverage_percentage=\$(awk -v coverage=\$coverage -v fixed_coverage=\$fixed_coverage 'BEGIN { print 100 * (fixed_coverage / coverage)}')
+        export fixed_coverage_percentage=\$(awk -v coverage=\$coverage -v fixed_coverage=\$fixed_coverage 'BEGIN { print 100 - (100 * (fixed_coverage / coverage))}')
         echo "Het Count: \$het_count"
         echo "Fixed coverage: \$fixed_coverage"
         echo "Coverage: \$coverage"
