@@ -18,7 +18,7 @@ outdir = "outdir"
 process run_clockwork{
     container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:v0.12.2"
     cpus = 1
-    memory = "12GB"
+    memory = "12 GB"
     debug true
     pod label: "name", value: "clockwork:run_clockwork"
     pod label: "sample_id", value: "${params.sample_id}"
@@ -78,7 +78,7 @@ process calc_counts{
     // container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:dev"
     container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork_bcftools:v1.18.0"
     cpus = 1
-    memory = "1GB"
+    memory = "1 GB"
     debug true
     pod label: "name", value: "clockwork:calc_counts"
     pod label: "sample_id", value: "${params.sample_id}"
