@@ -75,7 +75,6 @@ process run_clockwork{
 }
 
 process calc_counts{
-    // container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork:dev"
     container "lhr.ocir.io/lrbvkel2wjot/oxfordmmm/clockwork_bcftools:v1.18.0"
     cpus = 1
     memory = "1 GB"
