@@ -1,0 +1,51 @@
+nextflow_workflow {
+    name 'Test clockwork Pipeline'
+    script 'main.nf'
+    workflow 'clockwork'
+
+    test('Should run without failures') {
+        when {
+            workflow {
+                """
+                input[0] = Channel.fromFilePairs("$projectDir/test_data/successful/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
+                input[1] = "$projectDir/test_data/ref_data"
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+        }
+    }
+
+    test('Should fail with error message') {
+        when { 
+            workflow {
+                """
+                input[0] = Channel.fromFilePairs("$projectDir/test_data/not_enough_reads/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
+                input[1] = "$projectDir/test_data/ref_data"
+                """
+            }
+        }
+
+        then {
+            assert workflow.failed
+            assert workflow.errorReport.contains("NO VARIANTS FOUND! PLEASE CHECK QUALITY OF INPUT DATA")
+        }
+    }
+
+    test('Specifying input with no files causes pipeline to fail.') {
+        when {
+            workflow {
+                """
+                input[0] = Channel.fromFilePairs("$projectDir/test_data/no_files/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
+                input[1] = "$projectDir/test_data/ref_data"
+                """
+            }
+        }
+
+        then {
+            assert workflow.failed // Ideally, this would check for a specific error
+        }
+    }
+}
