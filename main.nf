@@ -12,7 +12,7 @@ params.sample_reads = ''
 params.species = 'tb'
 params.ref_files = ''
 
-project_dir = projectDir
+// project_dir = projectDir
 outdir = "outdir"
 
 process run_clockwork{
