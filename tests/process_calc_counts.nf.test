@@ -1,0 +1,25 @@
+nextflow_process {
+    name "Test post clockwork calculate counts process"
+    script "main.nf"
+    process "calc_counts"
+
+    test("Check Mixed calls and Fixed coverage") {
+
+        when {
+            process {
+            """
+            input[0] = file("$projectDir/test_data/calc_counts_input_files/alternate.gvcf")
+            input[1] = file("$projectDir/test_data/calc_counts_input_files/final.fasta")
+            input[2] = file("$projectDir/tb_clockwork_report.json.template")
+            """
+            }
+        }
+
+        then {
+
+            assert process.success
+            assert process.stdout.contains("Het Count: 1993")
+            assert process.stdout.contains("Fixed coverage percentage: 89.7871")
+        }
+    }
+}
