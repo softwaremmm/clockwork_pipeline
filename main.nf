@@ -12,7 +12,7 @@ params.sample_reads = ''
 params.species = 'tb'
 params.ref_files = ''
 
-project_dir = projectDir
+// project_dir = projectDir
 outdir = "outdir"
 
 process run_clockwork{
@@ -183,6 +183,7 @@ workflow{
         """
         .stripIndent()
 
-        read_ch = Channel.fromFilePairs("$params.sample_read/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
+        Channel.fromFilePairs("$params.sample_read/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
+            .set { read_ch }
         clockwork(read_ch, params.ref_files)
 }
