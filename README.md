@@ -76,6 +76,18 @@ work
 ```
 
 ## Running unit tests
+To setup the tests you will need to have run the nextflow with the following command
+```
+nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(PWD)/test_data/ref_data/
+```
+Then copy the `alternate.gvcf` and `final.fasta` created in the work directory to
+the `data/calc_counts_input_files` directory using a command similar to the following
+```
+nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(PWD)/test_data/ref_data/
+```
+You will need to change the hashes in the above command to reflect the ones used
+in your run.
+
 To run the tests you will need to have installed and activated the condo 
 environment as detailed in the "Running the Nextflow" section. you then should be 
 able to call the following command.
