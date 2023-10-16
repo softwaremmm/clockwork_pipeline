@@ -58,6 +58,11 @@ process run_clockwork{
         mv ${outdir}/map.bam ${outdir}/final.bam
         mv ${outdir}/map.bam.bai ${outdir}/final.bam.bai
         touch ${outdir}/genome_creation_error.json
+
+        if [ ${workflow.profile} == 'kubernetes' ]
+        then
+            /bin/bash ${projectDir}/lib/s3fs_teardown.sh
+        fi
         """
     stub:
         """
@@ -111,6 +116,11 @@ process calc_counts{
         echo "Fixed coverage percentage: \$fixed_coverage_percentage"
 
         cat $report_template | envsubst > "genome_creation_report.json"
+
+        if [ ${workflow.profile} == 'kubernetes' ]
+        then
+            /bin/bash ${projectDir}/lib/s3fs_teardown.sh
+        fi
         """
 
     stub:
