@@ -29,7 +29,7 @@ process run_clockwork{
         path(ref_files)
     output:
         path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf, optional: true
-        path("${outdir}/alternate.gvcf"), emit: final_gvcf
+        path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
         path("${outdir}/final.fasta"), emit: final_fasta
         path("${outdir}/final.vcf"), emit: final_vcf
         path("${outdir}/alternate-samtools.vcf"), emit: samtools_vcf
@@ -53,6 +53,7 @@ process run_clockwork{
 
         mv ${outdir}/cortex.vcf ${outdir}/alternate-cortex.vcf
         mv ${outdir}/final.gvcf ${outdir}/alternate.gvcf
+        gzip ${outdir}/alternate.gvcf
         mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
         mv ${outdir}/samtools.vcf ${outdir}/alternate-samtools.vcf
         mv ${outdir}/map.bam ${outdir}/final.bam
@@ -69,7 +70,7 @@ process run_clockwork{
         echo $PWD
         mkdir -p "${outdir}"
         touch "${outdir}/alternate-cortex.vcf"
-        touch "${outdir}/alternate.gvcf"
+        touch "${outdir}/alternate.gvcf.gz"
         touch "${outdir}/final.fasta"
         touch "${outdir}/final.vcf"
         touch "${outdir}/alternate-samtools.vcf"
