@@ -35,11 +35,11 @@ Ideally these will be moved to a different location/storage method in future
 Examples:
 
 ```
-nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(PWD)/test_data/ref_data/
+nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(pwd)/test_data/ref_data/
 ```
 
 If you want to run your own samples (two fastq files) through, you will need to 
-change `$(PWD)/test_data/successful/` to point to the directory containing your
+change `$(pwd)/test_data/successful/` to point to the directory containing your
 two fastq files.
 
 ## What it does
@@ -78,12 +78,12 @@ work
 ## Running unit tests
 To setup the tests you will need to have run the nextflow with the following command
 ```
-nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(PWD)/test_data/ref_data/
+nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(pwd)/test_data/ref_data/
 ```
 Then copy the `alternate.gvcf` and `final.fasta` created in the work directory to
 the `data/calc_counts_input_files` directory using a command similar to the following
 ```
-nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(PWD)/test_data/ref_data/
+nextflow run . -profile local --sample_read $(PWD)/test_data/successful/ --ref_files $(pwd)/test_data/ref_data/
 ```
 You will need to change the hashes in the above command to reflect the ones used
 in your run.
