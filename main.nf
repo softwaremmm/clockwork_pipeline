@@ -47,17 +47,51 @@ process run_clockwork{
         fi
         
         clockwork variant_call_one_sample --keep_bam --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
-        if [ ! -f "cortex.vcf" ]; then
-            touch ${outdir}/ cortex.vcf
+        
+        # cortex.vcf file
+        if [ -f ${outdir}/cortex.vcf ]; then
+            mv ${outdir}/cortex.vcf ${outdir}/alternate-cortex.vcf
+        else
+            touch ${outdir}/alternate-cortex.vcf
         fi
 
-        mv ${outdir}/cortex.vcf ${outdir}/alternate-cortex.vcf
-        mv ${outdir}/final.gvcf ${outdir}/alternate.gvcf
-        gzip ${outdir}/alternate.gvcf
-        mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
-        mv ${outdir}/samtools.vcf ${outdir}/alternate-samtools.vcf
-        mv ${outdir}/map.bam ${outdir}/final.bam
-        mv ${outdir}/map.bam.bai ${outdir}/final.bam.bai
+        # final.gvcf file
+        if [ -f ${outdir}/final.gvcf ]; then
+            mv ${outdir}/final.gvcf ${outdir}/alternate.gvcf
+            gzip ${outdir}/alternate.gvcf
+        else
+            touch ${outdir}/alternate.gvcf
+            gzip ${outdir}/alternate.gvcf
+        fi
+
+        # final.gvcf.fasta file
+        if [-f ${outdir}/final.gvcf.fasta ]; then
+            mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
+        else
+            touch ${outdir}/final.fasta
+        fi
+
+        # samtools.vcf file
+        if [ -f ${outdir}/samtools.vcf ]; then
+            mv ${outdir}/samtools.vcf ${outdir}/alternate-samtools.vcf
+        else
+            touch ${outdir}/alternate-samtools.vcf
+        fi
+
+        # final.bam file
+        if [ -f ${outdir}/map.bam ]; then
+            mv ${outdir}/map.bam ${outdir}/final.bam
+        else
+            touch ${outdir}/final.bam
+        fi
+
+        # map.bam.bai file
+        if [ -f ${outdir}/map.bam.bai ]; then
+            mv ${outdir}/map.bam.bai ${outdir}/final.bam.bai
+        else
+            touch ${outdir}/final.bam.bai
+        fi
+
         touch ${outdir}/genome_creation_error.json
 
         if [ ${workflow.profile} == 'kubernetes' ]
