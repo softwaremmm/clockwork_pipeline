@@ -44,6 +44,7 @@ process run_clockwork{
         then
             echo "Running with kubernetes"
             /bin/bash ${projectDir}/lib/s3fs_setup.sh $WORKSPACE
+            trap 'PROCESS_EXIT=\$?; /bin/bash ${projectDir}/lib/s3fs_teardown.sh; exit \$PROCESS_EXIT;' EXIT
         fi
         
         clockwork variant_call_one_sample --keep_bam --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
@@ -59,11 +60,6 @@ process run_clockwork{
         mv ${outdir}/map.bam ${outdir}/final.bam
         mv ${outdir}/map.bam.bai ${outdir}/final.bam.bai
         touch ${outdir}/genome_creation_error.json
-
-        if [ ${workflow.profile} == 'kubernetes' ]
-        then
-            /bin/bash ${projectDir}/lib/s3fs_teardown.sh
-        fi
         """
     stub:
         """
@@ -102,6 +98,7 @@ process calc_counts{
         then
             echo "Running with kubernetes"
             /bin/bash ${projectDir}/lib/s3fs_setup.sh $WORKSPACE
+            trap 'PROCESS_EXIT=\$?; /bin/bash ${projectDir}/lib/s3fs_teardown.sh; exit \$PROCESS_EXIT;' EXIT
         fi
 
         bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO\\t[%GT]\\t[%DP4]\\t[%COV]\\n'  ${gvcf_file} | \
@@ -117,11 +114,6 @@ process calc_counts{
         echo "Fixed coverage percentage: \$fixed_coverage_percentage"
 
         cat $report_template | envsubst > "genome_creation_report.json"
-
-        if [ ${workflow.profile} == 'kubernetes' ]
-        then
-            /bin/bash ${projectDir}/lib/s3fs_teardown.sh
-        fi
         """
 
     stub:
