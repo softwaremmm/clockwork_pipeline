@@ -3,13 +3,13 @@ nextflow_process {
     script "main.nf"
     process "calc_counts"
 
-    test("Check Mixed calls and Fixed coverage") {
+    test("Quick Check Mixed calls and Fixed coverage") {
 
         when {
             process {
             """
-            input[0] = file("$projectDir/test_data/calc_counts_input_files/alternate.gvcf")
-            input[1] = file("$projectDir/test_data/calc_counts_input_files/final.fasta")
+            input[0] = file("$projectDir/test_data/calc_counts_input_files/test.gvcf.gz")
+            input[1] = file("$projectDir/test_data/calc_counts_input_files/test.fasta")
             input[2] = file("$projectDir/tb_clockwork_report.json.template")
             """
             }
@@ -18,8 +18,8 @@ nextflow_process {
         then {
 
             assert process.success
-            assert process.stdout.contains("Het Count: 1993")
-            assert process.stdout.contains("Fixed coverage percentage: 89.7871")
+            assert process.stdout.contains("Het Count: 52")
+            assert process.stdout.contains("Fixed coverage percentage: 93.8719")
         }
     }
 }
