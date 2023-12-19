@@ -105,8 +105,8 @@ process calc_counts{
         awk 'BEGIN {FS=OFS="\\t"} {split(\$7, arr1, ","); split(\$8, arr2, ","); \$7=arr1[1]; \$8=arr1[2]; \$9=arr1[3]; \$10=arr1[4]; \$11=arr2[1]; \$12=arr2[2]; print}'  | \
         awk -F'\\t' '(\$7 + \$8 >= 10 && \$9 > 1 && \$10 > 1) || (\$11 > 1  && \$12>10) || (\$12>1  && \$11>10) ' > het_list
         export het_count=\$(cat het_list | wc -l | xargs)
-        export fixed_coverage=\$(tail -n +2 ${fasta_file} | grep -oE "[NXOZ\\-]" | wc -l | xargs)
-        export coverage=\$(tail -n +2 ${fasta_file} | tr -d '[:space:]' | wc -c | xargs)
+        export fixed_coverage=\$(cat ${fasta_file} | grep -v "^>" | grep -oE "[NXOZ\\-]" | wc -l | xargs)
+        export coverage=\$(cat ${fasta_file} | grep -v "^>" | tr -d '[:space:]' | wc -c | xargs)
         export fixed_coverage_percentage=\$(awk -v coverage=\$coverage -v fixed_coverage=\$fixed_coverage 'BEGIN { print 100 - (100 * (fixed_coverage / coverage))}')
         echo "Het Count: \$het_count"
         echo "Fixed coverage: \$fixed_coverage"
