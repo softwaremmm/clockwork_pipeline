@@ -1,6 +1,8 @@
 {
     "Sequencing Quality": {
         "Mixed calls": $het_count,
-        "Fixed coverage": $fixed_coverage_percentage
+        "Fixed coverage": $fixed_coverage_percentage,
+        "Null calls": $null_calls,
+        "Reference genome length": $reference_genome_length
     }
 }

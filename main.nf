@@ -89,6 +89,7 @@ process calc_counts{
         path(gvcf_file)
         path(fasta_file)
         path(report_template)
+        path(ref_files)
     output:
         path("genome_creation_report.json"), emit: tb_clockwork_report_json
 
@@ -105,13 +106,21 @@ process calc_counts{
         awk 'BEGIN {FS=OFS="\\t"} {split(\$7, arr1, ","); split(\$8, arr2, ","); \$7=arr1[1]; \$8=arr1[2]; \$9=arr1[3]; \$10=arr1[4]; \$11=arr2[1]; \$12=arr2[2]; print}'  | \
         awk -F'\\t' '(\$7 + \$8 >= 10 && \$9 > 1 && \$10 > 1) || (\$11 > 1  && \$12>10) || (\$12>1  && \$11>10) ' > het_list
         export het_count=\$(cat het_list | wc -l | xargs)
+        
         export fixed_coverage=\$(cat ${fasta_file} | grep -v "^>" | grep -oE "[NXOZ\\-]" | wc -l | xargs)
         export coverage=\$(cat ${fasta_file} | grep -v "^>" | tr -d '[:space:]' | wc -c | xargs)
         export fixed_coverage_percentage=\$(awk -v coverage=\$coverage -v fixed_coverage=\$fixed_coverage 'BEGIN { print 100 - (100 * (fixed_coverage / coverage))}')
+        
+        export null_calls=\$(cat ${fasta_file} | grep -v "^>" | grep -o N | wc -l )
+
+        export reference_genome_length=\$(cat ${ref_files}/ref.fa | grep -v "^>" | tr -d '\\n' | wc -c )
+        
         echo "Het Count: \$het_count"
         echo "Fixed coverage: \$fixed_coverage"
         echo "Coverage: \$coverage"
         echo "Fixed coverage percentage: \$fixed_coverage_percentage"
+        echo "Null Calls: \$null_calls"
+        echo "Reference Genome Length: \$reference_genome_length"
 
         cat $report_template | envsubst > "genome_creation_report.json"
         """
@@ -130,7 +139,7 @@ workflow clockwork{
     main:
 
         run_clockwork(reads, ref_files)
-        calc_counts(run_clockwork.out.final_gvcf, run_clockwork.out.final_fasta, "${moduleDir}/tb_clockwork_report.json.template")
+        calc_counts(run_clockwork.out.final_gvcf, run_clockwork.out.final_fasta, "${moduleDir}/tb_clockwork_report.json.template", ref_files)
     
     emit:
         cortex_vcf = run_clockwork.out.cortex_vcf

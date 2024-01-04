@@ -3,7 +3,7 @@ nextflow_process {
     script "main.nf"
     process "calc_counts"
 
-    test("Quick Check Mixed calls and Fixed coverage") {
+    test("Regression test on calcuates outputs") {
 
         when {
             process {
@@ -11,6 +11,7 @@ nextflow_process {
             input[0] = file("$projectDir/test_data/calc_counts_input_files/test.gvcf.gz")
             input[1] = file("$projectDir/test_data/calc_counts_input_files/test.fasta")
             input[2] = file("$projectDir/tb_clockwork_report.json.template")
+            input[3] = "$projectDir/test_data/ref_data"
             """
             }
         }
@@ -18,8 +19,13 @@ nextflow_process {
         then {
 
             assert process.success
+            
             assert process.stdout.contains("Het Count: 52")
             assert process.stdout.contains("Fixed coverage percentage: 93.8719")
+            assert process.stdout.contains("Null Calls: 6100")
+            assert process.stdout.contains("Reference Genome Length: 4411532")
+
+            assert path(process.out.tb_clockwork_report_json.get(0)).json == path('test_data/genome_creation_report.json').json
         }
     }
 }
