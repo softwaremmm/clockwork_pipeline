@@ -27,6 +27,26 @@ You will also need to have installed [Docker desktop](https://www.docker.com/pro
 
 Because the pipeline runs in the context of a docker container, no other dependencies are needed.
 
+## Conventional Commits
+Use conventional commits when developing for this repo. 
+You should install the pre-commit hooks to check your commit messages.
+
+You can install `pre-commit` using pip or conda and run
+```bash
+pre-commit install --hook-type commit-msg
+```
+
+If you have `npm` installed then you may be able to use `npx`, which is bundled with it, to avoid installing:
+```bash
+npx pre-commit install --hook-type commit-msg
+``` 
+
+Commitizen can help you write commits. 
+Install commitizen with conda and run `cz c` or use `npx`:
+```bash
+npx cz c
+```
+
 ## Running the Nextflow
 The files required to run Clockwork Nextflow are currently included in the repo. 
 Ideally these will be moved to a different location/storage method in future
