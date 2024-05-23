@@ -1,3 +1,9 @@
+## 0.5.2 (2024-05-23)
+
+### Fix
+
+- rename fasta header to include sample
+
 ## 0.5.1 (2024-05-23)
 
 ### Fix
