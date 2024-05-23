@@ -1,3 +1,9 @@
+## 0.5.1 (2024-05-23)
+
+### Fix
+
+- Add testing param for 16GB mem
+
 ## 0.5.0 (2024-01-17)
 
 ### Feat
