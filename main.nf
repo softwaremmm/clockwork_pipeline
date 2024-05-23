@@ -27,7 +27,7 @@ process run_clockwork{
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-        tuple val(x), path(sample_reads1), path(sample_reads2)
+        tuple val(sample_name), path(sample_reads1), path(sample_reads2)
         path(ref_files)
     output:
         path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf, optional: true
@@ -62,6 +62,9 @@ process run_clockwork{
         mv ${outdir}/map.bam ${outdir}/final.bam
         mv ${outdir}/map.bam.bai ${outdir}/final.bam.bai
         touch ${outdir}/genome_creation_error.json
+
+        # replace header of fasta file
+        sed -i "1s/^>.*/>${sample_name} ref=NC_000962.3/" ${outdir}/final.fasta
         """
     stub:
         """
