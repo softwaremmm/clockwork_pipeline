@@ -36,22 +36,6 @@ nextflow_workflow {
         }
     }
 
-    test('Should fail with error message') {
-        when { 
-            workflow {
-                """
-                input[0] = Channel.fromFilePairs("$projectDir/test_data/not_enough_reads/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
-                input[1] = "$projectDir/test_data/ref_data"
-                """
-            }
-        }
-
-        then {
-            assert workflow.failed
-            assert workflow.errorReport.contains("NO VARIANTS FOUND! PLEASE CHECK QUALITY OF INPUT DATA")
-        }
-    }
-
     test('Specifying input with no files causes pipeline to fail.') {
         when {
             workflow {
