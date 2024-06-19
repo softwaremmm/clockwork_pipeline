@@ -30,7 +30,7 @@ process run_clockwork{
         tuple val(sample_name), path(sample_reads1), path(sample_reads2)
         path(ref_files)
     output:
-        path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf, optional: true
+        path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf
         path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
         path("${outdir}/final.fasta"), emit: final_fasta
         path("${outdir}/final.vcf"), emit: final_vcf
@@ -41,17 +41,10 @@ process run_clockwork{
     beforeScript 'chmod 777 .'
 
     script:
-        """
-        if [ ${workflow.profile} == 'kubernetes' ]
-        then
-            echo "Running with kubernetes"
-            /bin/bash ${projectDir}/lib/s3fs_setup.sh $WORKSPACE
-            trap 'PROCESS_EXIT=\$?; /bin/bash ${projectDir}/lib/s3fs_teardown.sh; exit \$PROCESS_EXIT;' EXIT
-        fi
-        
+        """        
         clockwork variant_call_one_sample --keep_bam --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
         if [ ! -f "cortex.vcf" ]; then
-            touch ${outdir}/ cortex.vcf
+            echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
         fi
 
         mv ${outdir}/cortex.vcf ${outdir}/alternate-cortex.vcf
@@ -100,13 +93,6 @@ process calc_counts{
 
     script:
         """
-        if [ ${workflow.profile} == 'kubernetes' ]
-        then
-            echo "Running with kubernetes"
-            /bin/bash ${projectDir}/lib/s3fs_setup.sh $WORKSPACE
-            trap 'PROCESS_EXIT=\$?; /bin/bash ${projectDir}/lib/s3fs_teardown.sh; exit \$PROCESS_EXIT;' EXIT
-        fi
-
         bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO\\t[%GT]\\t[%DP4]\\t[%COV]\\n'  ${gvcf_file} | \
         awk 'BEGIN {FS=OFS="\\t"} {split(\$7, arr1, ","); split(\$8, arr2, ","); \$7=arr1[1]; \$8=arr1[2]; \$9=arr1[3]; \$10=arr1[4]; \$11=arr2[1]; \$12=arr2[2]; print}'  | \
         awk -F'\\t' '(\$7 + \$8 >= 10 && \$9 > 1 && \$10 > 1) || (\$11 > 1  && \$12>10) || (\$12>1  && \$11>10) ' > het_list
