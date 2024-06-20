@@ -1,3 +1,9 @@
+## 0.5.4 (2024-06-20)
+
+### Fix
+
+- produce empty vcf file if cortex produces none
+
 ## 0.5.3 (2024-06-18)
 
 ### Fix
