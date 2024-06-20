@@ -20,8 +20,8 @@ nextflow_workflow {
         }
     }
 
-    test('Should fail with error message') {
-        when { 
+    test('Should run without failures even if cortex produces no vcf') {
+        when {
             workflow {
                 """
                 input[0] = Channel.fromFilePairs("$projectDir/test_data/not_enough_reads/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
@@ -31,8 +31,8 @@ nextflow_workflow {
         }
 
         then {
-            assert workflow.failed
-            assert workflow.errorReport.contains("NO VARIANTS FOUND! PLEASE CHECK QUALITY OF INPUT DATA")
+            assert workflow.success
+            assert path(workflow.out.cortex_vcf.get(0)).md5 == path("$projectDir/test_data/not_enough_reads/empty.vcf").md5
         }
     }
 
