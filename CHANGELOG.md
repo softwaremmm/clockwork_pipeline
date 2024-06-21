@@ -1,3 +1,9 @@
+## 0.5.5 (2024-06-21)
+
+### Fix
+
+- output decompressed gvcf as well as the gvcf
+
 ## 0.5.4 (2024-06-20)
 
 ### Fix
