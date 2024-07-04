@@ -8,10 +8,9 @@ nextflow_process {
         when {
             process {
             """
-            input[0] = file("$projectDir/test_data/calc_counts_input_files/test.gvcf.gz")
-            input[1] = file("$projectDir/test_data/calc_counts_input_files/test.fasta")
-            input[2] = file("$projectDir/tb_clockwork_report.json.template")
-            input[3] = "$projectDir/test_data/ref_data"
+            input[0] = ["sample", file("$projectDir/test_data/calc_counts_input_files/test.gvcf.gz"), file("$projectDir/test_data/calc_counts_input_files/test.fasta")]
+            input[1] = file("$projectDir/tb_clockwork_report.json.template")
+            input[2] = "$projectDir/test_data/ref_data"
             """
             }
         }
@@ -25,7 +24,7 @@ nextflow_process {
             assert process.stdout.contains("Null Calls: 6100")
             assert process.stdout.contains("Reference Genome Length: 4411532")
 
-            assert path(process.out.tb_clockwork_report_json.get(0)).json == path('test_data/genome_creation_report.json').json
+            assert path(process.out.tb_clockwork_report_json[0][1]).json == path('test_data/genome_creation_report.json').json
         }
     }
 }

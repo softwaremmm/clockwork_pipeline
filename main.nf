@@ -30,15 +30,15 @@ process run_clockwork{
         tuple val(sample_name), path(sample_reads1), path(sample_reads2)
         path(ref_files)
     output:
-        path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf
-        path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
-        path("${outdir}/alternate.gvcf"), emit: final_gvcf_decompressed
-        path("${outdir}/final.fasta"), emit: final_fasta
-        path("${outdir}/final.vcf"), emit: final_vcf
-        path("${outdir}/alternate-samtools.vcf"), emit: samtools_vcf
-        path("${outdir}/final.bam"), emit: map_bam
-        path("${outdir}/final.bam.bai"), emit: map_bam_bai
-        path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
+        tuple val(sample_name), path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf
+        tuple val(sample_name), path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
+        tuple val(sample_name), path("${outdir}/alternate.gvcf"), emit: final_gvcf_decompressed
+        tuple val(sample_name), path("${outdir}/final.fasta"), emit: final_fasta
+        tuple val(sample_name), path("${outdir}/final.vcf"), emit: final_vcf
+        tuple val(sample_name), path("${outdir}/alternate-samtools.vcf"), emit: samtools_vcf
+        tuple val(sample_name), path("${outdir}/final.bam"), emit: map_bam
+        tuple val(sample_name), path("${outdir}/final.bam.bai"), emit: map_bam_bai
+        tuple val(sample_name), path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
     beforeScript 'chmod 777 .'
 
     script:
@@ -86,12 +86,11 @@ process calc_counts{
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-        path(gvcf_file)
-        path(fasta_file)
+        tuple val(sample_name), path(gvcf_file), path(fasta_file)
         path(report_template)
         path(ref_files)
     output:
-        path("genome_creation_report.json"), emit: tb_clockwork_report_json
+        tuple val(sample_name), path("genome_creation_report.json"), emit: tb_clockwork_report_json
 
     script:
         """
@@ -126,13 +125,13 @@ process calc_counts{
 
 workflow clockwork{
     take:
-    reads
-    ref_files
+        reads
+        ref_files
 
     main:
 
         run_clockwork(reads, ref_files)
-        calc_counts(run_clockwork.out.final_gvcf, run_clockwork.out.final_fasta, "${moduleDir}/tb_clockwork_report.json.template", ref_files)
+        calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
     
     emit:
         cortex_vcf = run_clockwork.out.cortex_vcf
