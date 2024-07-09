@@ -16,7 +16,7 @@ nextflow_workflow {
         then {
             assert workflow.success
 
-            assert path(workflow.out.final_fasta.get(0)).md5 == path("$projectDir/test_data/successful/expected_output.fasta").md5
+            assert path(workflow.out.final_fasta[0][1]).md5 == path("$projectDir/test_data/successful/expected_output.fasta").md5
         }
     }
 
@@ -32,7 +32,7 @@ nextflow_workflow {
 
         then {
             assert workflow.success
-            assert path(workflow.out.cortex_vcf.get(0)).md5 == path("$projectDir/test_data/not_enough_reads/empty.vcf").md5
+            assert path(workflow.out.cortex_vcf[0][1]).md5 == path("$projectDir/test_data/not_enough_reads/empty.vcf").md5
         }
     }
 
