@@ -30,12 +30,12 @@ process run_clockwork{
         tuple val(sample_name), path(sample_reads1), path(sample_reads2)
         path(ref_files)
     output:
-        tuple val(sample_name), path("${outdir}/alternate-cortex.vcf"), emit: cortex_vcf
+        tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
         tuple val(sample_name), path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
         tuple val(sample_name), path("${outdir}/alternate.gvcf"), emit: final_gvcf_decompressed
         tuple val(sample_name), path("${outdir}/final.fasta"), emit: final_fasta
         tuple val(sample_name), path("${outdir}/final.vcf"), emit: final_vcf
-        tuple val(sample_name), path("${outdir}/alternate-samtools.vcf"), emit: samtools_vcf
+        tuple val(sample_name), path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
         tuple val(sample_name), path("${outdir}/final.bam"), emit: map_bam
         tuple val(sample_name), path("${outdir}/final.bam.bai"), emit: map_bam_bai
         tuple val(sample_name), path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
@@ -44,7 +44,7 @@ process run_clockwork{
     script:
         """        
         clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
-        if [ ! -f "cortex.vcf" ]; then
+        if [ ! -f "${outdir}/cortex.vcf" ]; then
             echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
         fi
 
@@ -56,6 +56,9 @@ process run_clockwork{
         mv ${outdir}/map.bam ${outdir}/final.bam
         mv ${outdir}/map.bam.bai ${outdir}/final.bam.bai
         touch ${outdir}/genome_creation_error.json
+
+        gzip ${outdir}/alternate-cortex.vcf
+        gzip ${outdir}/alternate-samtools.vcf
 
         # replace header of fasta file
         sed -i "1s/^>.*/>${sample_name} ref=NC_000962.3/" ${outdir}/final.fasta
