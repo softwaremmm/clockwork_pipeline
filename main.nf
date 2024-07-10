@@ -43,7 +43,7 @@ process run_clockwork{
 
     script:
         """        
-        clockwork variant_call_one_sample --keep_bam --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
+        clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
         if [ ! -f "cortex.vcf" ]; then
             echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
         fi
