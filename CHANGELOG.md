@@ -1,3 +1,10 @@
+## 0.5.8 (2024-07-10)
+
+### Fix
+
+- gzip alternate vcfs
+- fix check for empty cortex vcf
+
 ## 0.5.7 (2024-07-10)
 
 ### Fix
