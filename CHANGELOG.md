@@ -1,3 +1,10 @@
+## 0.5.9 (2024-07-16)
+
+### Fix
+
+- update bcftools v1.8.2
+- use clockwork v0.12.5
+
 ## 0.5.8 (2024-07-10)
 
 ### Fix
