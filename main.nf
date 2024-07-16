@@ -16,7 +16,7 @@ params.ref_files = ''
 outdir = "outdir"
 
 process run_clockwork{
-    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork:v0.12.4"
+    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork:v0.12.5"
     cpus = 2
     memory = {
         params.testing=="" ? "32GB" : "16GB"
@@ -80,7 +80,7 @@ process run_clockwork{
 }
 
 process calc_counts{
-    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.1"
+    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.2"
     cpus = 1
     memory = "1 GB"
     debug true
