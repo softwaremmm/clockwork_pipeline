@@ -77,7 +77,7 @@ process run_clockwork{
 }
 
 process calc_counts{
-    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.1"
+    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.2"
     cpus = 1
     memory = "1 GB"
     debug true
