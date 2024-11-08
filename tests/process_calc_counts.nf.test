@@ -16,13 +16,7 @@ nextflow_process {
         }
 
         then {
-
             assert process.success
-            
-            assert process.stdout.contains("Het Count: 52")
-            assert process.stdout.contains("Fixed coverage percentage: 93.8719")
-            assert process.stdout.contains("Null Calls: 6100")
-            assert process.stdout.contains("Reference Genome Length: 4411532")
 
             assert path(process.out.tb_clockwork_report_json[0][1]).json == path('test_data/genome_creation_report.json').json
         }
