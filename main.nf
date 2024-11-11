@@ -9,10 +9,8 @@ ANSI_RESET = "\033[0m"
 
 params.help = ''
 params.sample_reads = ''
-params.species = 'tb'
 params.ref_files = ''
 
-// project_dir = projectDir
 outdir = "outdir"
 
 process run_clockwork{
@@ -21,7 +19,6 @@ process run_clockwork{
     memory = {
         params.testing=="" ? "32GB" : "16GB"
     }
-    debug true
     pod label: "name", value: "clockwork_pipeline:run_clockwork"
     pod label: "sample_id", value: "${params.sample_id}"
     pod label: "run_id", value: "${params.run_id}"
@@ -29,6 +26,7 @@ process run_clockwork{
     input:
         tuple val(sample_name), path(sample_reads1), path(sample_reads2)
         path(ref_files)
+
     output:
         tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
         tuple val(sample_name), path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
@@ -83,7 +81,6 @@ process calc_counts{
     container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.2"
     cpus = 1
     memory = "1 GB"
-    debug true
     pod label: "name", value: "clockwork_pipeline:calc_counts"
     pod label: "sample_id", value: "${params.sample_id}"
     pod label: "run_id", value: "${params.run_id}"
@@ -162,8 +159,7 @@ workflow{
 
             Parameters:
             ------------------------------------------------------------------------
-            --sample_read   Directory holding the fastq files *reads{1,2}.fq.gz
-            --species       Name of the species this belongs to. Default = 'tb'
+            --sample_reads   Directory holding the fastq files *reads{1,2}.fq.gz
             --ref_files     Location of the reference genome pre prepared files
             """
             .stripIndent()
@@ -178,8 +174,7 @@ workflow{
 
         Parameters:
         ------------------------------------------------------------------------
-        --sample_read    $params.sample_read
-        --species        $params.species
+        --sample_reads    $params.sample_reads
         --ref_files      $params.ref_files
 
         Runtime data:
@@ -191,7 +186,7 @@ workflow{
         """
         .stripIndent()
 
-        Channel.fromFilePairs("$params.sample_read/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
+        Channel.fromFilePairs("$params.sample_reads/*_{1,2}.fastq.gz", checkIfExists:true, flat:true)
             .set { read_ch }
         ref_files = Channel.fromPath(params.ref_files)
         clockwork(read_ch, ref_files)

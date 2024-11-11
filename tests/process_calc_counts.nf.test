@@ -16,9 +16,8 @@ nextflow_process {
         }
 
         then {
-
             assert process.success
-            
+
             assert process.stdout.contains("Het Count: 52")
             assert process.stdout.contains("Fixed coverage percentage: 93.8719")
             assert process.stdout.contains("Null Calls: 6100")
