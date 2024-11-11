@@ -1,3 +1,11 @@
+## 0.5.10 (2024-11-11)
+
+### Fix
+
+- set debug true for tests
+- remove test for stdout, json test is enough
+- remove debug statements
+
 ## 0.5.9 (2024-07-16)
 
 ### Fix
