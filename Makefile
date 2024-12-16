@@ -1,6 +1,3 @@
-run-nextflow-with-stub:
-	nextflow run . -profile local -stub --sample_read .
-
 run-nextflow:
 	nextflow run . -profile local --sample_read .
 
