@@ -16,9 +16,8 @@ outdir = "outdir"
 process run_clockwork{
     container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork:v0.12.5"
     cpus = 2
-    memory = {
-        params.testing=="" ? "32GB" : "16GB"
-    }
+    memory { 16.GB * task.attempt }
+
     pod label: "name", value: "clockwork_pipeline:run_clockwork"
     pod label: "sample_id", value: "${params.sample_id}"
     pod label: "run_id", value: "${params.run_id}"
