@@ -1,3 +1,11 @@
+## 1.0.0
+
+The main purpose of this release is the adoption of Nextflow linting via the Nextflow language server. This makes the code more consistent with other repositories.
+
+### Fix
+
+- Request correct amount of memory and increase if process it retried.
+
 ## 0.5.10 (2024-11-11)
 
 ### Fix
