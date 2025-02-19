@@ -1,9 +1,7 @@
 #!/usr/bin/env nextflow
 
-params.help = ''
-params.sample_reads = ''
-params.ref_files = ''
 
+params.input_paired_suffix = "*_{1,2}.fastq.gz"
 
 
 workflow {
@@ -21,7 +19,7 @@ workflow {
 
             Parameters:
             ------------------------------------------------------------------------
-            --sample_reads   Directory holding the fastq files *reads{1,2}.fq.gz
+            --input_dir   Directory holding the fastq files *reads{1,2}.fq.gz
             --ref_files     Location of the reference genome pre prepared files
             """.stripIndent()
         )
@@ -37,7 +35,7 @@ workflow {
 
         Parameters:
         ------------------------------------------------------------------------
-        --sample_reads    ${params.sample_reads}
+        --input_dir    ${params.input_dir}
         --ref_files      ${params.ref_files}
 
         Runtime data:
@@ -49,10 +47,12 @@ workflow {
         """.stripIndent()
     )
 
-    Channel
-        .fromFilePairs("${params.sample_reads}/*_{1,2}.fastq.gz", checkIfExists: true, flat: true)
-        .set { read_ch }
-    ref_files = Channel.fromPath(params.ref_files)
+    read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true, flat: true)
+        .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
+    ref_files = Channel.fromPath(params.ref_files).first()
+
+    read_ch.take(3).view()
+
     clockwork(read_ch, ref_files)
 }
 
