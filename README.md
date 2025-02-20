@@ -15,11 +15,11 @@ Workflow takes 2 parameters:
 - input_dir. folder containing input fastq files.
 - ref_files. folder containing reference files
 
-To save output files need to set `--publish true` which will save output files to `results`.
+To save output files need to set `--publish_dir` which will save output files to directory provided.
 
 example:
 ```
-nextflow run . -profile local --publish true --input_dir test_data/successful --ref_files test_data/ref_data/
+nextflow run . -profile local --publish_dir results --input_dir test_data/successful --ref_files test_data/ref_data/
 ```
 
 Change `input_dir` to point to your files. Will look for files based on default parameter:

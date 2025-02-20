@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
 
-
 params.input_paired_suffix = "*_{1,2}.fastq.gz"
 
 
@@ -79,7 +78,7 @@ workflow clockwork {
 }
 
 process run_clockwork {
-    publishDir "results", enabled: params.publish, mode: 'copy', saveAs: { filename -> sample_name + "_" + filename }
+    publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork:v0.12.5"
     cpus 2
     memory { 16.GB * task.attempt }
@@ -128,7 +127,7 @@ process run_clockwork {
 }
 
 process calc_counts {
-    publishDir "results", enabled: params.publish, mode: 'copy', saveAs: { filename -> sample_name + "_" + filename }
+    publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.2"
     cpus 1
     memory "1 GB"
