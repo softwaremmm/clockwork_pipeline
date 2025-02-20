@@ -45,7 +45,7 @@ workflow {
         """.stripIndent()
     )
 
-    read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true, flat: true)
+    read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
         .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
     ref_files = Channel.fromPath(params.ref_files).first()
 
@@ -87,7 +87,7 @@ process run_clockwork {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), path(sample_reads1), path(sample_reads2)
+    tuple val(sample_name), path(reads)
     path ref_files
 
     output:
@@ -104,7 +104,7 @@ process run_clockwork {
     script:
     outdir = "outdir"
     """
-    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
+    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${reads[0]} ${reads[1]}
     if [ ! -f "${outdir}/cortex.vcf" ]; then
         echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
     fi
