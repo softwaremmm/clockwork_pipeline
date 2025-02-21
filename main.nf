@@ -1,13 +1,9 @@
 #!/usr/bin/env nextflow
 
-params.help = ''
-params.sample_reads = ''
-params.ref_files = ''
-
+params.input_paired_suffix = "*_{1,2}.fastq.gz"
 
 
 workflow {
-
     ANSI_GREEN = "\033[1;32m"
     ANSI_RESET = "\033[0m"
 
@@ -21,7 +17,7 @@ workflow {
 
             Parameters:
             ------------------------------------------------------------------------
-            --sample_reads   Directory holding the fastq files *reads{1,2}.fq.gz
+            --input_dir   Directory holding the fastq files *reads{1,2}.fq.gz
             --ref_files     Location of the reference genome pre prepared files
             """.stripIndent()
         )
@@ -37,7 +33,7 @@ workflow {
 
         Parameters:
         ------------------------------------------------------------------------
-        --sample_reads    ${params.sample_reads}
+        --input_dir    ${params.input_dir}
         --ref_files      ${params.ref_files}
 
         Runtime data:
@@ -49,10 +45,12 @@ workflow {
         """.stripIndent()
     )
 
-    Channel
-        .fromFilePairs("${params.sample_reads}/*_{1,2}.fastq.gz", checkIfExists: true, flat: true)
-        .set { read_ch }
-    ref_files = Channel.fromPath(params.ref_files)
+    read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
+        .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
+    ref_files = Channel.fromPath(params.ref_files).first()
+
+    read_ch.take(3).view()
+
     clockwork(read_ch, ref_files)
 }
 
@@ -80,6 +78,7 @@ workflow clockwork {
 }
 
 process run_clockwork {
+    publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork:v0.12.5"
     cpus 2
     memory { 16.GB * task.attempt }
@@ -88,7 +87,7 @@ process run_clockwork {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), path(sample_reads1), path(sample_reads2)
+    tuple val(sample_name), path(reads)
     path ref_files
 
     output:
@@ -105,7 +104,7 @@ process run_clockwork {
     script:
     outdir = "outdir"
     """
-    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${sample_reads1} ${sample_reads2}
+    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${reads[0]} ${reads[1]}
     if [ ! -f "${outdir}/cortex.vcf" ]; then
         echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
     fi
@@ -128,6 +127,7 @@ process run_clockwork {
 }
 
 process calc_counts {
+    publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.2"
     cpus 1
     memory "1 GB"
