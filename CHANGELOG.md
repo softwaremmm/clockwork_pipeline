@@ -1,3 +1,18 @@
+## 1.0.0
+
+The main purpose of this release is the adoption of Nextflow linting via the Nextflow language server. This makes the code more consistent with other repositories.
+
+### Fix
+
+- Request correct amount of memory and increase if process it retried.
+- Use non-flat channel structure. Meaning illumina reads are a list rather than two seperate parts of channel
+
+### Chore
+
+- simplify nextflow config
+- rewrite readme with local running instructions
+- add publish_dir option
+
 ## 0.5.10 (2024-11-11)
 
 ### Fix
