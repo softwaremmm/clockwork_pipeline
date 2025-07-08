@@ -79,7 +79,7 @@ workflow clockwork {
 
 process run_clockwork {
     publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
-    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork:v0.12.5"
+    container params.container_prefix + "/gpas/clockwork:v0.12.5"
     cpus 2
     memory { 16.GB * task.attempt }
     pod label: "name", value: "clockwork_pipeline:run_clockwork"
@@ -128,7 +128,7 @@ process run_clockwork {
 
 process calc_counts {
     publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
-    container "lhr.ocir.io/lrbvkel2wjot/gpas/clockwork_bcftools:v1.8.2"
+    container params.container_prefix + "/gpas/clockwork_bcftools:v1.8.2"
     cpus 1
     memory "1 GB"
     pod label: "name", value: "clockwork_pipeline:calc_counts"
