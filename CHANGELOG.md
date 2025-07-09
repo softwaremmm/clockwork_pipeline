@@ -1,3 +1,7 @@
+## 1.0.1
+
+- chore: Parameterise container prefix
+
 ## 1.0.0
 
 The main purpose of this release is the adoption of Nextflow linting via the Nextflow language server. This makes the code more consistent with other repositories.
