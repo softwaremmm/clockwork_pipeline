@@ -18,7 +18,7 @@ workflow {
             Parameters:
             ------------------------------------------------------------------------
             --input_dir   Directory holding the fastq files *reads{1,2}.fq.gz
-            --ref_files     Location of the reference genome pre prepared files
+            --ref_fasta     Location of the reference genome
             """.stripIndent()
         )
         exit(0)
@@ -34,7 +34,7 @@ workflow {
         Parameters:
         ------------------------------------------------------------------------
         --input_dir    ${params.input_dir}
-        --ref_files      ${params.ref_files}
+        --ref_fasta      ${params.ref_fasta}
 
         Runtime data:
         ------------------------------------------------------------------------
@@ -47,22 +47,22 @@ workflow {
 
     read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
         .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
-    ref_files = Channel.fromPath(params.ref_files).first()
+    ref_fasta = Channel.fromPath(params.ref_fasta)
 
     read_ch.take(3).view()
 
-    clockwork(read_ch, ref_files)
+    clockwork(read_ch, ref_fasta)
 }
 
 workflow clockwork {
     take:
     reads
-    ref_files
+    ref_fasta
 
     main:
 
-    run_clockwork(reads, ref_files)
-    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
+    run_clockwork(reads, ref_fasta)
+    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_fasta)
 
     emit:
     cortex_vcf = run_clockwork.out.cortex_vcf
@@ -88,7 +88,7 @@ process run_clockwork {
 
     input:
     tuple val(sample_name), path(reads)
-    path ref_files
+    path ref_fasta
 
     output:
     tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
@@ -104,7 +104,8 @@ process run_clockwork {
     script:
     outdir = "outdir"
     """
-    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${reads[0]} ${reads[1]}
+    clockwork reference_prepare --outdir ref_dir ${ref_fasta}
+    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ref_dir ${outdir} ${reads[0]} ${reads[1]}
     if [ ! -f "${outdir}/cortex.vcf" ]; then
         echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
     fi
@@ -138,7 +139,7 @@ process calc_counts {
     input:
     tuple val(sample_name), path(gvcf_file), path(fasta_file)
     path report_template
-    path ref_files
+    path ref_fasta
 
     output:
     tuple val(sample_name), path("genome_creation_report.json"), emit: tb_clockwork_report_json
@@ -156,7 +157,7 @@ process calc_counts {
 
     export null_calls=\$(cat ${fasta_file} | grep -v "^>" | grep -o N | wc -l )
 
-    export reference_genome_length=\$(cat ${ref_files}/ref.fa | grep -v "^>" | tr -d '\\n' | wc -c )
+    export reference_genome_length=\$(cat ${ref_fasta} | grep -v "^>" | tr -d '\\n' | wc -c )
 
     echo "Het Count: \$het_count"
     echo "Fixed coverage: \$fixed_coverage"
