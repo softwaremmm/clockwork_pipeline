@@ -61,7 +61,8 @@ workflow clockwork {
 
     main:
 
-    run_clockwork(reads, ref_fasta)
+    ref_dir = prepare_clockwork_reference(ref_fasta)
+    run_clockwork(reads, ref_dir)
     calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_fasta)
 
     emit:
@@ -77,6 +78,27 @@ workflow clockwork {
     tb_clockwork_error_json = run_clockwork.out.tb_clockwork_error_json
 }
 
+process prepare_clockwork_reference {
+    publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
+    container params.container_prefix + "/gpas/clockwork:v0.12.5"
+    cpus 2
+    memory { 16.GB * task.attempt }
+    pod label: "name", value: "clockwork_pipeline:prepare_clockwork_reference"
+    pod label: "sample_id", value: "${params.sample_id}"
+    pod label: "run_id", value: "${params.run_id}"
+
+    input:
+    path ref_fasta
+
+    output:
+    path "ref_dir"
+
+    script:
+    """
+    clockwork reference_prepare --outdir ref_dir ${ref_fasta}
+    """
+}
+
 process run_clockwork {
     publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container params.container_prefix + "/gpas/clockwork:v0.12.5"
@@ -88,7 +110,7 @@ process run_clockwork {
 
     input:
     tuple val(sample_name), path(reads)
-    path ref_fasta
+    path ref_dir
 
     output:
     tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
@@ -104,7 +126,6 @@ process run_clockwork {
     script:
     outdir = "outdir"
     """
-    clockwork reference_prepare --outdir ref_dir ${ref_fasta}
     clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ref_dir ${outdir} ${reads[0]} ${reads[1]}
     if [ ! -f "${outdir}/cortex.vcf" ]; then
         echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
