@@ -17,8 +17,8 @@ workflow {
 
             Parameters:
             ------------------------------------------------------------------------
-            --input_dir   Directory holding the fastq files *reads{1,2}.fq.gz
-            --ref_fasta     Location of the reference genome
+            --input_dir           Directory holding the fastq files *reads{1,2}.fq.gz
+            --ref_fasta_gzip      Location of the reference genome
             """.stripIndent()
         )
         exit(0)
@@ -34,7 +34,7 @@ workflow {
         Parameters:
         ------------------------------------------------------------------------
         --input_dir    ${params.input_dir}
-        --ref_fasta      ${params.ref_fasta}
+        --ref_fasta_gzip      ${params.ref_fasta_gzip}
 
         Runtime data:
         ------------------------------------------------------------------------
@@ -47,23 +47,23 @@ workflow {
 
     read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
         .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
-    ref_fasta = Channel.fromPath(params.ref_fasta)
+    ref_fasta_gzip = Channel.fromPath(params.ref_fasta_gzip)
 
     read_ch.take(3).view()
 
-    clockwork(read_ch, ref_fasta)
+    clockwork(read_ch, ref_fasta_gzip)
 }
 
 workflow clockwork {
     take:
     reads
-    ref_fasta
+    ref_fasta_gzip
 
     main:
 
-    ref_dir = prepare_clockwork_reference(ref_fasta)
+    ref_dir = prepare_clockwork_reference(ref_fasta_gzip)
     run_clockwork(reads, ref_dir)
-    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_fasta)
+    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_fasta_gzip)
 
     emit:
     cortex_vcf = run_clockwork.out.cortex_vcf
@@ -88,14 +88,14 @@ process prepare_clockwork_reference {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    path ref_fasta
+    path ref_fasta_gzip
 
     output:
     path "ref_dir"
 
     script:
     """
-    clockwork reference_prepare --outdir ref_dir ${ref_fasta}
+    clockwork reference_prepare --outdir ref_dir ${ref_fasta_gzip}
     """
 }
 
@@ -160,7 +160,7 @@ process calc_counts {
     input:
     tuple val(sample_name), path(gvcf_file), path(fasta_file)
     path report_template
-    path ref_fasta
+    path ref_fasta_gzip
 
     output:
     tuple val(sample_name), path("genome_creation_report.json"), emit: tb_clockwork_report_json
@@ -178,7 +178,9 @@ process calc_counts {
 
     export null_calls=\$(cat ${fasta_file} | grep -v "^>" | grep -o N | wc -l )
 
-    export reference_genome_length=\$(cat ${ref_fasta} | grep -v "^>" | tr -d '\\n' | wc -c )
+    gunzip -c ${ref_fasta_gzip} > ref.fa
+
+    export reference_genome_length=\$(cat ref.fa | grep -v "^>" | tr -d '\\n' | wc -c )
 
     echo "Het Count: \$het_count"
     echo "Fixed coverage: \$fixed_coverage"
