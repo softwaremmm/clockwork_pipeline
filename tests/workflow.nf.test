@@ -8,7 +8,7 @@ nextflow_workflow {
             workflow {
                 """
                 input[0] = Channel.fromFilePairs("$projectDir/test_data/successful/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data"
+                input[1] = "$projectDir/test_data/ref_data/ref.fa"
                 """
             }
         }
@@ -26,7 +26,7 @@ nextflow_workflow {
             workflow {
                 """
                 input[0] = Channel.fromFilePairs("$projectDir/test_data/not_enough_reads/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data"
+                input[1] = "$projectDir/test_data/ref_data/ref.fa"
                 """
             }
         }
@@ -42,7 +42,7 @@ nextflow_workflow {
             workflow {
                 """
                 input[0] = Channel.fromFilePairs("$projectDir/test_data/no_files/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data"
+                input[1] = "$projectDir/test_data/ref_data/ref.fa"
                 """
             }
         }
