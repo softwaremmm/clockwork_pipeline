@@ -47,7 +47,8 @@ workflow {
 
     read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
         .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
-    ref_fasta_gzip = Channel.fromPath(params.ref_fasta_gzip)
+    ref_fasta_file = file(params.ref_fasta_gzip)
+    ref_fasta_gzip = read_ch.map { ref_fasta_file }
 
     read_ch.take(3).view()
 
