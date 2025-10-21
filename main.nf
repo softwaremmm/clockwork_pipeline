@@ -34,7 +34,6 @@ workflow {
         Parameters:
         ------------------------------------------------------------------------
         --input_dir    ${params.input_dir}
-        --ref_fasta_gzip      ${params.ref_fasta_gzip}
 
         Runtime data:
         ------------------------------------------------------------------------
@@ -47,24 +46,26 @@ workflow {
 
     read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
         .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
-    ref_fasta_file = file(params.ref_fasta_gzip)
-    ref_fasta_gzip = read_ch.map { ref_fasta_file }
+    read_ch = read_ch.map { it -> [it[0], 
+                                   it[1], 
+                                   params.reference, 
+                                   params.accession, 
+                                   file(params.reference_genomes_dir+params.accession+params.reference_genome_suffix)] }
 
     read_ch.take(3).view()
 
-    clockwork(read_ch, ref_fasta_gzip)
+    clockwork(read_ch)
 }
+
 
 workflow clockwork {
     take:
     reads
-    ref_fasta_gzip
 
     main:
-
-    ref_dir = prepare_clockwork_reference(ref_fasta_gzip)
-    run_clockwork(reads, ref_dir)
-    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_fasta_gzip)
+    read_refs = prepare_clockwork_reference(reads)
+    run_clockwork(read_refs)
+    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", read_refs)
 
     emit:
     cortex_vcf = run_clockwork.out.cortex_vcf
@@ -89,10 +90,10 @@ process prepare_clockwork_reference {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    path ref_fasta_gzip
+    tuple val(sample_name), path(reads), val(reference), val(accession), path(ref_fasta_gzip)
 
     output:
-    path "ref_dir"
+    tuple val(sample_name), path(reads), val(reference), val(accession), path(ref_fasta_gzip), path("ref_dir")
 
     script:
     """
@@ -110,19 +111,23 @@ process run_clockwork {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), path(reads)
-    path ref_dir
+    tuple val(sample_name), path(reads), val(reference), val(accession), path(ref_fasta_gzip), path("ref_dir")
 
     output:
-    tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
-    tuple val(sample_name), path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
-    tuple val(sample_name), path("${outdir}/alternate.gvcf"), emit: final_gvcf_decompressed
-    tuple val(sample_name), path("${outdir}/final.fasta"), emit: final_fasta
-    tuple val(sample_name), path("${outdir}/final.vcf"), emit: final_vcf
-    tuple val(sample_name), path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
-    tuple val(sample_name), path("${outdir}/final.bam"), emit: map_bam
-    tuple val(sample_name), path("${outdir}/final.bam.bai"), emit: map_bam_bai
-    tuple val(sample_name), path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
+    tuple val(sample_name), path(reads), 
+                            val(reference), 
+                            val(accession), 
+                            path(ref_fasta_gzip), 
+                            path("ref_dir"),
+                            path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
+                            path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
+                            path("${outdir}/alternate.gvcf"), emit: final_gvcf_decompressed
+                            path("${outdir}/final.fasta"), emit: final_fasta
+                            path("${outdir}/final.vcf"), emit: final_vcf
+                            path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
+                            path("${outdir}/final.bam"), emit: map_bam
+                            path("${outdir}/final.bam.bai"), emit: map_bam_bai
+                            path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
 
     script:
     outdir = "outdir"
