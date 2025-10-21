@@ -67,22 +67,40 @@ workflow clockwork {
     reads
 
     main:
+    // Set up input channels
+    ref_name_ch = reads.map { it -> [it[0], it[2]] }
     ref_fasta_gzip_ch = reads.map { it -> [it[0], it[4]] }
+    
+    // Prepare reference data for Clockwork based on FASTA file
     ref_dir_ch = reads.map { it -> [it[0], it[1]] }.join(prepare_clockwork_reference(reads).ref_dir)
+
+    // Run variant calling and assembly
     clockwork_ch = run_clockwork(ref_dir_ch)
-    calc_counts(clockwork_ch.final_gvcf.join(clockwork_ch.final_fasta).join(ref_fasta_gzip_ch), "${moduleDir}/tb_clockwork_report.json.template")
+
+    // Add reference name to the output tuples
+    clockwork_ref_name_ch = clockwork_ch.each { it ->
+        it.join(ref_name_ch)
+    }
+
+    // Calculate counts and generate report
+    calc_counts_ch = calc_counts(clockwork_ch.final_gvcf.join(clockwork_ch.final_fasta).join(ref_fasta_gzip_ch), "${moduleDir}/tb_clockwork_report.json.template")
+
+    // Add reference name to the calc_counts output tuples
+    calc_counts_ref_name_ch = calc_counts_ch.each { it ->
+        it.join(ref_name_ch)
+    }
 
     emit:
-    cortex_vcf = clockwork_ch.cortex_vcf
-    final_gvcf = clockwork_ch.final_gvcf
-    final_gvcf_decompressed = clockwork_ch.final_gvcf_decompressed
-    final_fasta = clockwork_ch.final_fasta
-    final_vcf = clockwork_ch.final_vcf
-    samtools_vcf = clockwork_ch.samtools_vcf
-    map_bam = clockwork_ch.map_bam
-    map_bam_bai = clockwork_ch.map_bam_bai
-    tb_clockwork_report_json = calc_counts.out.tb_clockwork_report_json
-    tb_clockwork_error_json = clockwork_ch.tb_clockwork_error_json
+    cortex_vcf = clockwork_ref_name_ch.cortex_vcf
+    final_gvcf = clockwork_ref_name_ch.final_gvcf
+    final_gvcf_decompressed = clockwork_ref_name_ch.final_gvcf_decompressed
+    final_fasta = clockwork_ref_name_ch.final_fasta
+    final_vcf = clockwork_ref_name_ch.final_vcf
+    samtools_vcf = clockwork_ref_name_ch.samtools_vcf
+    map_bam = clockwork_ref_name_ch.map_bam
+    map_bam_bai = clockwork_ref_name_ch.map_bam_bai
+    tb_clockwork_report_json = calc_counts_ref_name_ch.tb_clockwork_report_json
+    tb_clockwork_error_json = clockwork_ref_name_ch.tb_clockwork_error_json
 }
 
 process prepare_clockwork_reference {
