@@ -157,8 +157,8 @@ process run_clockwork {
     gzip ${outdir}/alternate-cortex.vcf
     gzip ${outdir}/alternate-samtools.vcf
 
-    # replace header of fasta file
-    sed -i "1s/^>.*/>${sample_name} ref=NC_000962.3/" ${outdir}/final.fasta
+    # tidy header of fasta file
+    sed -i 's/\\.sample//g' ${outdir}/final.fasta
     """
 }
 
