@@ -14,7 +14,7 @@ nextflow_workflow {
                         it[1],
                         params.reference,
                         params.accession,
-                        file("$projectDir/test_data/ref_data/ref.fa.gz"),
+                        file("$projectDir/test_data/ref_data/NC_000962.3.fa.gz"),
                     ]
                 }
                 input[0] = read_ch
@@ -41,7 +41,7 @@ nextflow_workflow {
                         it[1],
                         params.reference,
                         params.accession,
-                        file("$projectDir/test_data/ref_data/ref.fa.gz"),
+                        file("$projectDir/test_data/ref_data/NC_000962.3.fa.gz"),
                     ]
                 }
                 input[0] = read_ch
@@ -60,7 +60,7 @@ nextflow_workflow {
             workflow {
                 """
                 input[0] = Channel.fromFilePairs("$projectDir/test_data/no_files/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data/ref.fa.gz"
+                input[1] = "$projectDir/test_data/ref_data/NC_000962.3.fa.gz"
                 """
             }
         }

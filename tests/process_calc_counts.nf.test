@@ -11,7 +11,7 @@ nextflow_process {
             input[0] = ["sample", 
                          file("$projectDir/test_data/calc_counts_input_files/test.gvcf.gz"), 
                          file("$projectDir/test_data/calc_counts_input_files/test.fasta"), 
-                         file("$projectDir/test_data/ref_data/ref.fa.gz")]
+                         file("$projectDir/test_data/ref_data/NC_000962.3.fa.gz")]
             input[1] = file("$projectDir/tb_clockwork_report.json.template")
             """
             }
