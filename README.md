@@ -11,20 +11,34 @@ In this repo they are included in `./test_data/ref_data`.
 
 
 ## Running the Nextflow
-Workflow takes 2 parameters:
+Workflow takes several parameters, one of which is likely specified by the user:
 - input_dir. folder containing input fastq files.
-- ref_files. folder containing reference files
 
 To save output files need to set `--publish_dir` which will save output files to directory provided.
 
 example:
 ```
-nextflow run . -profile local --publish_dir results --input_dir test_data/successful --ref_files test_data/ref_data/
+nextflow run . -profile local --publish_dir results --input_dir test_data/successful
 ```
 
 Change `input_dir` to point to your files. Will look for files based on default parameter:
 ```
 params.input_paired_suffix = "*_{1,2}.fastq.gz"
+```
+
+These parameters are set by default in the `nextflow.config` file:
+
+```
+reference_genomes_dir = 'data/knowledge/reference_genomes/' # Path to reference genomes
+reference_genome_suffix = '_genomic.fna.gz' # Suffix of reference genome files
+accession = 'GCA_000195955.2' # Reference genome accession to be used in run
+reference = 'Mycobacterium tuberculosis' # Reference genome name to be used in run
+```
+
+For this configuration, the pipeline will require a file at this path relative to the run dir:
+
+```
+data/knowledge/reference_genomes/GCA_000195955.2_genomic.fna.gz
 ```
 
 ## The Pipeline

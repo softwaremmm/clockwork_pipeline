@@ -167,3 +167,7 @@ work/
 *fastq.gz
 *fq.gz
 .nf-test
+
+output/*
+results/*
+trace*

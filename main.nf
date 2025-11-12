@@ -17,8 +17,8 @@ workflow {
 
             Parameters:
             ------------------------------------------------------------------------
-            --input_dir   Directory holding the fastq files *reads{1,2}.fq.gz
-            --ref_files     Location of the reference genome pre prepared files
+            --input_dir           Directory holding the fastq files *reads{1,2}.fq.gz
+            --ref_fasta_gzip      Location of the reference genome
             """.stripIndent()
         )
         exit(0)
@@ -34,7 +34,6 @@ workflow {
         Parameters:
         ------------------------------------------------------------------------
         --input_dir    ${params.input_dir}
-        --ref_files      ${params.ref_files}
 
         Runtime data:
         ------------------------------------------------------------------------
@@ -47,34 +46,72 @@ workflow {
 
     read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
         .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
-    ref_files = Channel.fromPath(params.ref_files).first()
+    read_ch = read_ch.map { it ->
+        [
+            it[0],
+            it[1],
+            params.reference,
+            params.accession,
+            file(params.reference_genomes_dir + params.accession + params.reference_genome_suffix),
+        ]
+    }
 
     read_ch.take(3).view()
 
-    clockwork(read_ch, ref_files)
+    clockwork(read_ch)
 }
+
 
 workflow clockwork {
     take:
     reads
-    ref_files
 
     main:
+    // Set up input channels
+    ref_name_ch = reads.map { it -> [it[0], it[2]] }
+    ref_fasta_gzip_ch = reads.map { it -> [it[0], it[4]] }
+    
+    // Prepare reference data for Clockwork based on FASTA file
+    ref_dir_ch = reads.map { it -> [it[0], it[1]] }.join(prepare_clockwork_reference(reads).ref_dir)
 
-    run_clockwork(reads, ref_files)
-    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
+    // Run variant calling and assembly
+    clockwork_ch = run_clockwork(ref_dir_ch)
+
+    // Calculate counts and generate report
+    calc_counts_ch = calc_counts(clockwork_ch.final_gvcf.join(clockwork_ch.final_fasta).join(ref_fasta_gzip_ch), "${moduleDir}/tb_clockwork_report.json.template")
 
     emit:
-    cortex_vcf = run_clockwork.out.cortex_vcf
-    final_gvcf = run_clockwork.out.final_gvcf
-    final_gvcf_decompressed = run_clockwork.out.final_gvcf_decompressed
-    final_fasta = run_clockwork.out.final_fasta
-    final_vcf = run_clockwork.out.final_vcf
-    samtools_vcf = run_clockwork.out.samtools_vcf
-    map_bam = run_clockwork.out.map_bam
-    map_bam_bai = run_clockwork.out.map_bam_bai
-    tb_clockwork_report_json = calc_counts.out.tb_clockwork_report_json
-    tb_clockwork_error_json = run_clockwork.out.tb_clockwork_error_json
+    cortex_vcf = clockwork_ch.cortex_vcf.join(ref_name_ch)
+    final_gvcf = clockwork_ch.final_gvcf.join(ref_name_ch)
+    final_gvcf_decompressed = clockwork_ch.final_gvcf_decompressed.join(ref_name_ch)
+    final_fasta = clockwork_ch.final_fasta.join(ref_name_ch)
+    final_vcf = clockwork_ch.final_vcf.join(ref_name_ch)
+    samtools_vcf = clockwork_ch.samtools_vcf.join(ref_name_ch)
+    map_bam = clockwork_ch.map_bam.join(ref_name_ch)
+    map_bam_bai = clockwork_ch.map_bam_bai.join(ref_name_ch)
+    tb_clockwork_report_json = calc_counts_ch.tb_clockwork_report_json.join(ref_name_ch)
+    tb_clockwork_error_json = clockwork_ch.tb_clockwork_error_json.join(ref_name_ch)
+}
+
+process prepare_clockwork_reference {
+    publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
+    container params.container_prefix + "/gpas/clockwork:v0.12.5"
+    cpus 2
+    memory { 16.GB * task.attempt }
+    pod label: "name", value: "clockwork_pipeline:prepare_clockwork_reference"
+    pod label: "sample_id", value: "${params.sample_id}"
+    pod label: "run_id", value: "${params.run_id}"
+
+    input:
+    tuple val(sample_name), path(reads), val(reference), val(accession), path(ref_fasta_gzip)
+
+    output:
+    tuple val(sample_name), path("ref_dir"), emit: ref_dir
+
+    script:
+    """
+    clockwork reference_prepare --outdir ref_dir ${ref_fasta_gzip}
+    """
 }
 
 process run_clockwork {
@@ -87,8 +124,7 @@ process run_clockwork {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), path(reads)
-    path ref_files
+    tuple val(sample_name), path(reads), path("ref_dir")
 
     output:
     tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
@@ -104,7 +140,7 @@ process run_clockwork {
     script:
     outdir = "outdir"
     """
-    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ${ref_files} ${outdir} ${reads[0]} ${reads[1]}
+    clockwork variant_call_one_sample --keep_bam --filter_min_dp 3 --fasta_min_dp 3  --no_trim ref_dir ${outdir} ${reads[0]} ${reads[1]}
     if [ ! -f "${outdir}/cortex.vcf" ]; then
         echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
     fi
@@ -121,8 +157,8 @@ process run_clockwork {
     gzip ${outdir}/alternate-cortex.vcf
     gzip ${outdir}/alternate-samtools.vcf
 
-    # replace header of fasta file
-    sed -i "1s/^>.*/>${sample_name} ref=NC_000962.3/" ${outdir}/final.fasta
+    # tidy header of fasta file
+    sed -i -e "s/^>/>${sample_name} ref=/" -e "s/\\.sample//g" ${outdir}/final.fasta
     """
 }
 
@@ -136,9 +172,8 @@ process calc_counts {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), path(gvcf_file), path(fasta_file)
+    tuple val(sample_name), path(gvcf_file), path(fasta_file), path(ref_fasta_gzip)
     path report_template
-    path ref_files
 
     output:
     tuple val(sample_name), path("genome_creation_report.json"), emit: tb_clockwork_report_json
@@ -156,7 +191,9 @@ process calc_counts {
 
     export null_calls=\$(cat ${fasta_file} | grep -v "^>" | grep -o N | wc -l )
 
-    export reference_genome_length=\$(cat ${ref_files}/ref.fa | grep -v "^>" | tr -d '\\n' | wc -c )
+    gunzip -c ${ref_fasta_gzip} > ref.fa
+
+    export reference_genome_length=\$(cat ref.fa | grep -v "^>" | tr -d '\\n' | wc -c )
 
     echo "Het Count: \$het_count"
     echo "Fixed coverage: \$fixed_coverage"
