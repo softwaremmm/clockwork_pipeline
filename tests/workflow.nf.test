@@ -7,8 +7,17 @@ nextflow_workflow {
         when {
             workflow {
                 """
-                input[0] = Channel.fromFilePairs("$projectDir/test_data/successful/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data/ref.fa.gz"
+                read_ch = Channel.fromFilePairs("$projectDir/test_data/successful/*_{1,2}.fastq.gz", checkIfExists:true)
+                read_ch = read_ch.map { it ->
+                    [
+                        it[0],
+                        it[1],
+                        params.reference,
+                        params.accession,
+                        file("$projectDir/test_data/ref_data/ref.fa.gz"),
+                    ]
+                }
+                input[0] = read_ch
                 """
             }
         }
@@ -25,8 +34,17 @@ nextflow_workflow {
         when {
             workflow {
                 """
-                input[0] = Channel.fromFilePairs("$projectDir/test_data/not_enough_reads/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data/ref.fa.gz"
+                read_ch = Channel.fromFilePairs("$projectDir/test_data/not_enough_reads/*_{1,2}.fastq.gz", checkIfExists:true)
+                read_ch = read_ch.map { it ->
+                    [
+                        it[0],
+                        it[1],
+                        params.reference,
+                        params.accession,
+                        file("$projectDir/test_data/ref_data/ref.fa.gz"),
+                    ]
+                }
+                input[0] = read_ch
                 """
             }
         }

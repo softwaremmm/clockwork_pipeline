@@ -8,9 +8,11 @@ nextflow_process {
         when {
             process {
             """
-            input[0] = ["sample", file("$projectDir/test_data/calc_counts_input_files/test.gvcf.gz"), file("$projectDir/test_data/calc_counts_input_files/test.fasta")]
+            input[0] = ["sample", 
+                         file("$projectDir/test_data/calc_counts_input_files/test.gvcf.gz"), 
+                         file("$projectDir/test_data/calc_counts_input_files/test.fasta"), 
+                         file("$projectDir/test_data/ref_data/ref.fa.gz")]
             input[1] = file("$projectDir/tb_clockwork_report.json.template")
-            input[2] = "$projectDir/test_data/ref_data/ref.fa.gz"
             """
             }
         }
