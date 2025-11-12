@@ -158,7 +158,7 @@ process run_clockwork {
     gzip ${outdir}/alternate-samtools.vcf
 
     # tidy header of fasta file
-    sed -i 's/\\.sample//g' ${outdir}/final.fasta
+    sed -i -e "s/^>/>${sample_name} ref=/" -e "s/\\.sample//g" ${outdir}/final.fasta
     """
 }
 
