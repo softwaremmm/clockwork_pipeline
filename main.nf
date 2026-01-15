@@ -92,8 +92,8 @@ process run_clockwork {
 
     output:
     tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
-    tuple val(sample_name), path("${outdir}/all_calls.gvcf.gz"), emit: all_calls_gvcf
-    tuple val(sample_name), path("${outdir}/all_calls.gvcf"), emit: all_calls_gvcf_decompressed
+    tuple val(sample_name), path("${outdir}/all_calls.vcf.gz"), emit: all_calls_vcf
+    tuple val(sample_name), path("${outdir}/all_calls.vcf"), emit: all_calls_vcf_decompressed
     tuple val(sample_name), path("${outdir}/final.fasta"), emit: final_fasta
     tuple val(sample_name), path("${outdir}/variants.vcf"), emit: variants_vcf
     tuple val(sample_name), path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
