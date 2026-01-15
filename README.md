@@ -42,16 +42,16 @@ work
 │       ├── outdir
 │       │   ├── alternate-cortex.vcf
 │       │   ├── alternate-samtools.vcf
-│       │   ├── alternate.gvcf
+│       │   ├── all_calls.gvcf
 │       │   ├── final.bam
 │       │   ├── final.bam.bai
 │       │   ├── final.fasta
-│       │   ├── final.vcf
+│       │   ├── variants.vcf
 │       │   └── genome_creation_error.json
 │       └── ref_data
 └── f3
     └── a06ba84ace7c1185a462d5f549562a
-        ├── alternate.gvcf
+        ├── all_calls.gvcf
         ├── final.fasta
         ├── genome_creation_report.json
         ├── het_list

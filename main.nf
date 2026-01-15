@@ -92,10 +92,10 @@ process run_clockwork {
 
     output:
     tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
-    tuple val(sample_name), path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
-    tuple val(sample_name), path("${outdir}/alternate.gvcf"), emit: final_gvcf_decompressed
+    tuple val(sample_name), path("${outdir}/all_calls.gvcf.gz"), emit: all_calls_gvcf
+    tuple val(sample_name), path("${outdir}/all_calls.gvcf"), emit: all_calls_gvcf_decompressed
     tuple val(sample_name), path("${outdir}/final.fasta"), emit: final_fasta
-    tuple val(sample_name), path("${outdir}/final.vcf"), emit: final_vcf
+    tuple val(sample_name), path("${outdir}/variants.vcf"), emit: variants_vcf
     tuple val(sample_name), path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
     tuple val(sample_name), path("${outdir}/final.bam"), emit: map_bam
     tuple val(sample_name), path("${outdir}/final.bam.bai"), emit: map_bam_bai
@@ -109,9 +109,10 @@ process run_clockwork {
         echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
     fi
 
+    mv ${outdir}/final.vcf ${outdir}/variants.vcf
     mv ${outdir}/cortex.vcf ${outdir}/alternate-cortex.vcf
-    mv ${outdir}/final.gvcf ${outdir}/alternate.gvcf
-    gzip -k ${outdir}/alternate.gvcf
+    mv ${outdir}/final.gvcf ${outdir}/all_calls.vcf
+    gzip -k ${outdir}/all_calls.vcf
     mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
     mv ${outdir}/samtools.vcf ${outdir}/alternate-samtools.vcf
     mv ${outdir}/map.bam ${outdir}/final.bam
