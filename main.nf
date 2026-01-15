@@ -69,7 +69,7 @@ workflow clockwork {
     all_calls_vcf = run_clockwork.out.all_calls_vcf
     all_calls_vcf_decompressed = run_clockwork.out.all_calls_vcf_decompressed
     final_fasta = run_clockwork.out.final_fasta
-    final_vcf = run_clockwork.out.final_vcf
+    variants_vcf = run_clockwork.out.variants_vcf
     samtools_vcf = run_clockwork.out.samtools_vcf
     map_bam = run_clockwork.out.map_bam
     map_bam_bai = run_clockwork.out.map_bam_bai
