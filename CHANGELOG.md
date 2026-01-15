@@ -1,3 +1,9 @@
+## New
+
+- Update output file names:
+    - `final.vcf` to `variants.vcf`
+    - `alternate.gvcf` to `all_calls.vcf`
+
 ## 1.0.1
 
 - chore: Parameterise container prefix
