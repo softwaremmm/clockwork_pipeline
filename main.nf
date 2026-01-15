@@ -62,12 +62,12 @@ workflow clockwork {
     main:
 
     run_clockwork(reads, ref_files)
-    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
+    calc_counts(run_clockwork.out.all_calls_vcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
 
     emit:
     cortex_vcf = run_clockwork.out.cortex_vcf
-    final_gvcf = run_clockwork.out.final_gvcf
-    final_gvcf_decompressed = run_clockwork.out.final_gvcf_decompressed
+    all_calls_vcf = run_clockwork.out.all_calls_vcf
+    all_calls_vcf_decompressed = run_clockwork.out.all_calls_vcf_decompressed
     final_fasta = run_clockwork.out.final_fasta
     final_vcf = run_clockwork.out.final_vcf
     samtools_vcf = run_clockwork.out.samtools_vcf
