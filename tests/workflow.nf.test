@@ -16,6 +16,10 @@ nextflow_workflow {
         then {
             assert workflow.success
 
+            assert workflow.out.final_fasta[0][1].contains('final.fasta')
+            assert workflow.out.variants_vcf[0][1].contains('variants.vcf')
+            assert workflow.out.all_calls_vcf[0][1].contains('all_calls.vcf')
+
             assert path(workflow.out.final_fasta[0][1]).md5 == path("$projectDir/test_data/successful/expected_output.fasta").md5
             assert path(workflow.out.cortex_vcf[0][1]).linesGzip != path("$projectDir/test_data/not_enough_reads/empty.vcf.gz").linesGzip
         }
