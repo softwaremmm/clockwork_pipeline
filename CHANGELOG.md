@@ -1,4 +1,4 @@
-## New
+## 1.1.0
 
 - Update output file names:
     - `final.vcf` to `variants.vcf`
