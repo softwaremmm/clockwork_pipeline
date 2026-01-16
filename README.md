@@ -42,7 +42,7 @@ work
 │       ├── outdir
 │       │   ├── alternate-cortex.vcf
 │       │   ├── alternate-samtools.vcf
-│       │   ├── all_calls.gvcf
+│       │   ├── all_calls.vcf
 │       │   ├── final.bam
 │       │   ├── final.bam.bai
 │       │   ├── final.fasta
