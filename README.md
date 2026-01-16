@@ -51,7 +51,7 @@ work
 │       └── ref_data
 └── f3
     └── a06ba84ace7c1185a462d5f549562a
-        ├── all_calls.gvcf
+        ├── all_calls.vcf
         ├── final.fasta
         ├── genome_creation_report.json
         ├── het_list
