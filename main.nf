@@ -62,14 +62,14 @@ workflow clockwork {
     main:
 
     run_clockwork(reads, ref_files)
-    calc_counts(run_clockwork.out.final_gvcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
+    calc_counts(run_clockwork.out.all_calls_vcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
 
     emit:
     cortex_vcf = run_clockwork.out.cortex_vcf
-    final_gvcf = run_clockwork.out.final_gvcf
-    final_gvcf_decompressed = run_clockwork.out.final_gvcf_decompressed
+    all_calls_vcf = run_clockwork.out.all_calls_vcf
+    all_calls_vcf_decompressed = run_clockwork.out.all_calls_vcf_decompressed
     final_fasta = run_clockwork.out.final_fasta
-    final_vcf = run_clockwork.out.final_vcf
+    variants_vcf = run_clockwork.out.variants_vcf
     samtools_vcf = run_clockwork.out.samtools_vcf
     map_bam = run_clockwork.out.map_bam
     map_bam_bai = run_clockwork.out.map_bam_bai
@@ -92,10 +92,10 @@ process run_clockwork {
 
     output:
     tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
-    tuple val(sample_name), path("${outdir}/alternate.gvcf.gz"), emit: final_gvcf
-    tuple val(sample_name), path("${outdir}/alternate.gvcf"), emit: final_gvcf_decompressed
+    tuple val(sample_name), path("${outdir}/all_calls.vcf.gz"), emit: all_calls_vcf
+    tuple val(sample_name), path("${outdir}/all_calls.vcf"), emit: all_calls_vcf_decompressed
     tuple val(sample_name), path("${outdir}/final.fasta"), emit: final_fasta
-    tuple val(sample_name), path("${outdir}/final.vcf"), emit: final_vcf
+    tuple val(sample_name), path("${outdir}/variants.vcf"), emit: variants_vcf
     tuple val(sample_name), path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
     tuple val(sample_name), path("${outdir}/final.bam"), emit: map_bam
     tuple val(sample_name), path("${outdir}/final.bam.bai"), emit: map_bam_bai
@@ -109,9 +109,10 @@ process run_clockwork {
         echo -e "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample" > ${outdir}/cortex.vcf
     fi
 
+    mv ${outdir}/final.vcf ${outdir}/variants.vcf
     mv ${outdir}/cortex.vcf ${outdir}/alternate-cortex.vcf
-    mv ${outdir}/final.gvcf ${outdir}/alternate.gvcf
-    gzip -k ${outdir}/alternate.gvcf
+    mv ${outdir}/final.gvcf ${outdir}/all_calls.vcf
+    gzip -k ${outdir}/all_calls.vcf
     mv ${outdir}/final.gvcf.fasta ${outdir}/final.fasta
     mv ${outdir}/samtools.vcf ${outdir}/alternate-samtools.vcf
     mv ${outdir}/map.bam ${outdir}/final.bam
