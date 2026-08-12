@@ -164,6 +164,5 @@ work/
 
 .DS_Store
 
-*fastq.gz
 *fq.gz
 .nf-test
