@@ -8,4 +8,7 @@ test: clean
 	nf-test test tests/*.nf.test
 
 run-nextflow:
-	nextflow run . -profile local --sample_read .
+	nextflow run main.nf \
+		--ref_files test_data/ref_data  \
+		--input_dir test_data/successful \
+		-profile local 
