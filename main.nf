@@ -87,7 +87,7 @@ process run_clockwork {
     publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container params.container_prefix + "/gpas/clockwork:v0.12.5"
     cpus 2
-    memory { 16.GB * task.attempt }
+    memory { 15.GB * task.attempt }
     pod label: "name", value: "clockwork_pipeline:run_clockwork"
     pod label: "sample_id", value: "${params.sample_id}"
     pod label: "run_id", value: "${params.run_id}"
