@@ -67,6 +67,11 @@ nf-test test tests/*.nf.test
 make test
 ```
 
+## Making reference data
+```bash
+clockwork reference_prepare --outdir ref_files ref.fasta.gz
+```
+
 ## Docker image
 The docker images are include in a separate repository and are built to an
 OCI container registry. Currently the containers are stored public so Nextflow

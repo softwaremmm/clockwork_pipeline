@@ -51,21 +51,22 @@ workflow {
 
     read_ch.take(3).view()
 
-    input_files = read_ch.combine(ref_files).map { it -> tuple(it[0], "ref_id", it[2], it[1]) }
+    input_files = read_ch.combine(ref_files).map { it -> tuple(it[0], "ref_id", it[1], it[2]) }
 
     clockwork(input_files)
 }
 
 workflow clockwork {
     take:
-    input_files // (sample_name, ref_id, ref_files, reads)
+    input_files // (sample_name, ref_id, reads, ref_files)
 
     main:
 
-    run_clockwork(input_files)
+    run_clockwork(
+        input_files
+    )
 
-    calc_counts_input = input_files
-        .map { it -> tuple(it[0], it[1], it[2]) }
+    calc_counts_input = input_files.map { it -> tuple(it[0], it[1], it[3]) }
         .join(run_clockwork.out.all_calls_vcf, by: [0, 1])
         .join(run_clockwork.out.final_fasta, by: [0, 1])
     calc_counts(calc_counts_input, "${moduleDir}/tb_clockwork_report.json.template")
@@ -83,6 +84,7 @@ workflow clockwork {
     tb_clockwork_error_json = run_clockwork.out.tb_clockwork_error_json
 }
 
+
 process run_clockwork {
     publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container params.container_prefix + "/gpas/clockwork:v0.12.5"
@@ -93,7 +95,7 @@ process run_clockwork {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), val(ref_id), path(ref_files), path(reads)
+    tuple val(sample_name), val(ref_id), path(reads), path(ref_files)
 
     output:
     tuple val(sample_name), val(ref_id), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf

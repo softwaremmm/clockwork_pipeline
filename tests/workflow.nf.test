@@ -10,9 +10,9 @@ nextflow_workflow {
                 input[0] = Channel.of([
                     "WTCHG_885333_73205296_1_subset_200K",
                     "ref_id",
-                    "$projectDir/test_data/ref_data",
                     [file("$projectDir/test_data/successful/WTCHG_885333_73205296_1_subset_200K_1.fastq.gz"),
-                     file("$projectDir/test_data/successful/WTCHG_885333_73205296_1_subset_200K_2.fastq.gz")]
+                     file("$projectDir/test_data/successful/WTCHG_885333_73205296_1_subset_200K_2.fastq.gz")],
+                    "$projectDir/test_data/ref_data"
                 ])
                 """
             }
@@ -37,9 +37,9 @@ nextflow_workflow {
                 input[0] = Channel.of([
                     "sample",
                     "ref_id",
-                    "$projectDir/test_data/ref_data",
                     [file("$projectDir/test_data/not_enough_reads/tuberculosis_1.fastq.gz"),
-                     file("$projectDir/test_data/not_enough_reads/tuberculosis_2.fastq.gz")]
+                     file("$projectDir/test_data/not_enough_reads/tuberculosis_2.fastq.gz")],
+                    "$projectDir/test_data/ref_data"
                 ])
                 """
             }
@@ -58,9 +58,9 @@ nextflow_workflow {
                 input[0] = Channel.of([
                     "sample",
                     "ref_id",
-                    "$projectDir/test_data/ref_data",
                     [file("$projectDir/test_data/no_files/sample_1.fastq.gz"),
-                     file("$projectDir/test_data/no_files/sample_2.fastq.gz")]
+                     file("$projectDir/test_data/no_files/sample_2.fastq.gz")],
+                    "$projectDir/test_data/ref_data"
                 ])
                 """
             }
