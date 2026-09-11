@@ -22,6 +22,7 @@ jobs:
         run: |
           wget -qO- https://get.nf-test.com | bash
           sudo mv nf-test /usr/local/bin/
+          nf-test version
 
       - name: Login to OCR
         uses: docker/login-action@v2
