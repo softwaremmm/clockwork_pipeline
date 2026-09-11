@@ -7,8 +7,13 @@ nextflow_workflow {
         when {
             workflow {
                 """
-                input[0] = Channel.fromFilePairs("$projectDir/test_data/successful/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data"
+                input[0] = Channel.of([
+                    "WTCHG_885333_73205296_1_subset_200K",
+                    "ref_id",
+                    [file("$projectDir/test_data/successful/WTCHG_885333_73205296_1_subset_200K_1.fastq.gz"),
+                     file("$projectDir/test_data/successful/WTCHG_885333_73205296_1_subset_200K_2.fastq.gz")],
+                    "$projectDir/test_data/ref_data"
+                ])
                 """
             }
         }
@@ -16,12 +21,12 @@ nextflow_workflow {
         then {
             assert workflow.success
 
-            assert workflow.out.final_fasta[0][1].contains('final.fasta')
-            assert workflow.out.variants_vcf[0][1].contains('variants.vcf')
-            assert workflow.out.all_calls_vcf[0][1].contains('all_calls.vcf')
+            assert workflow.out.final_fasta[0][2].contains('final.fasta')
+            assert workflow.out.variants_vcf[0][2].contains('variants.vcf')
+            assert workflow.out.all_calls_vcf[0][2].contains('all_calls.vcf')
 
-            assert path(workflow.out.final_fasta[0][1]).md5 == path("$projectDir/test_data/successful/expected_output.fasta").md5
-            assert path(workflow.out.cortex_vcf[0][1]).linesGzip != path("$projectDir/test_data/not_enough_reads/empty.vcf.gz").linesGzip
+            assert path(workflow.out.final_fasta[0][2]).md5 == path("$projectDir/test_data/successful/expected_output.fasta").md5
+            assert path(workflow.out.cortex_vcf[0][2]).linesGzip != path("$projectDir/test_data/not_enough_reads/empty.vcf.gz").linesGzip
         }
     }
 
@@ -29,15 +34,20 @@ nextflow_workflow {
         when {
             workflow {
                 """
-                input[0] = Channel.fromFilePairs("$projectDir/test_data/not_enough_reads/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data"
+                input[0] = Channel.of([
+                    "sample",
+                    "ref_id",
+                    [file("$projectDir/test_data/not_enough_reads/tuberculosis_1.fastq.gz"),
+                     file("$projectDir/test_data/not_enough_reads/tuberculosis_2.fastq.gz")],
+                    "$projectDir/test_data/ref_data"
+                ])
                 """
             }
         }
 
         then {
             assert workflow.success
-            assert path(workflow.out.cortex_vcf[0][1]).linesGzip == path("$projectDir/test_data/not_enough_reads/empty.vcf.gz").linesGzip
+            assert path(workflow.out.cortex_vcf[0][2]).linesGzip == path("$projectDir/test_data/not_enough_reads/empty.vcf.gz").linesGzip
         }
     }
 
@@ -45,8 +55,13 @@ nextflow_workflow {
         when {
             workflow {
                 """
-                input[0] = Channel.fromFilePairs("$projectDir/test_data/no_files/*_{1,2}.fastq.gz", checkIfExists:true)
-                input[1] = "$projectDir/test_data/ref_data"
+                input[0] = Channel.of([
+                    "sample",
+                    "ref_id",
+                    [file("$projectDir/test_data/no_files/sample_1.fastq.gz"),
+                     file("$projectDir/test_data/no_files/sample_2.fastq.gz")],
+                    "$projectDir/test_data/ref_data"
+                ])
                 """
             }
         }

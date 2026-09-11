@@ -45,24 +45,31 @@ workflow {
         """.stripIndent()
     )
 
-    read_ch = Channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
+    read_ch = channel.fromFilePairs("${params.input_dir}/${params.input_paired_suffix}", checkIfExists: true)
         .ifEmpty { error("cannot find any reads matching ${params.input_paired_suffix} in ${params.input_dir}") }
-    ref_files = Channel.fromPath(params.ref_files).first()
+    ref_files = channel.fromPath(params.ref_files).first()
 
     read_ch.take(3).view()
 
-    clockwork(read_ch, ref_files)
+    input_files = read_ch.combine(ref_files).map { it -> tuple(it[0], "ref_id", it[1], it[2]) }
+
+    clockwork(input_files)
 }
 
 workflow clockwork {
     take:
-    reads
-    ref_files
+    input_files // (sample_name, ref_id, reads, ref_files)
 
     main:
 
-    run_clockwork(reads, ref_files)
-    calc_counts(run_clockwork.out.all_calls_vcf.join(run_clockwork.out.final_fasta), "${moduleDir}/tb_clockwork_report.json.template", ref_files)
+    run_clockwork(
+        input_files
+    )
+
+    calc_counts_input = input_files.map { it -> tuple(it[0], it[1], it[3]) }
+        .join(run_clockwork.out.all_calls_vcf, by: [0, 1])
+        .join(run_clockwork.out.final_fasta, by: [0, 1])
+    calc_counts(calc_counts_input, "${moduleDir}/tb_clockwork_report.json.template")
 
     emit:
     cortex_vcf = run_clockwork.out.cortex_vcf
@@ -77,29 +84,29 @@ workflow clockwork {
     tb_clockwork_error_json = run_clockwork.out.tb_clockwork_error_json
 }
 
+
 process run_clockwork {
     publishDir "${params.publish_dir}", enabled: params.publish_dir != "", mode: "copy", saveAs: { filename -> sample_name + "_" + filename }
     container params.container_prefix + "/gpas/clockwork:v0.12.5"
     cpus 2
-    memory { 16.GB * task.attempt }
+    memory { 15.GB * task.attempt }
     pod label: "name", value: "clockwork_pipeline:run_clockwork"
     pod label: "sample_id", value: "${params.sample_id}"
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), path(reads)
-    path ref_files
+    tuple val(sample_name), val(ref_id), path(reads), path(ref_files)
 
     output:
-    tuple val(sample_name), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
-    tuple val(sample_name), path("${outdir}/all_calls.vcf.gz"), emit: all_calls_vcf
-    tuple val(sample_name), path("${outdir}/all_calls.vcf"), emit: all_calls_vcf_decompressed
-    tuple val(sample_name), path("${outdir}/final.fasta"), emit: final_fasta
-    tuple val(sample_name), path("${outdir}/variants.vcf"), emit: variants_vcf
-    tuple val(sample_name), path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
-    tuple val(sample_name), path("${outdir}/final.bam"), emit: map_bam
-    tuple val(sample_name), path("${outdir}/final.bam.bai"), emit: map_bam_bai
-    tuple val(sample_name), path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
+    tuple val(sample_name), val(ref_id), path("${outdir}/alternate-cortex.vcf.gz"), emit: cortex_vcf
+    tuple val(sample_name), val(ref_id), path("${outdir}/all_calls.vcf.gz"), emit: all_calls_vcf
+    tuple val(sample_name), val(ref_id), path("${outdir}/all_calls.vcf"), emit: all_calls_vcf_decompressed
+    tuple val(sample_name), val(ref_id), path("${outdir}/final.fasta"), emit: final_fasta
+    tuple val(sample_name), val(ref_id), path("${outdir}/variants.vcf"), emit: variants_vcf
+    tuple val(sample_name), val(ref_id), path("${outdir}/alternate-samtools.vcf.gz"), emit: samtools_vcf
+    tuple val(sample_name), val(ref_id), path("${outdir}/final.bam"), emit: map_bam
+    tuple val(sample_name), val(ref_id), path("${outdir}/final.bam.bai"), emit: map_bam_bai
+    tuple val(sample_name), val(ref_id), path("${outdir}/genome_creation_error.json"), emit: tb_clockwork_error_json
 
     script:
     outdir = "outdir"
@@ -137,12 +144,11 @@ process calc_counts {
     pod label: "run_id", value: "${params.run_id}"
 
     input:
-    tuple val(sample_name), path(gvcf_file), path(fasta_file)
+    tuple val(sample_name), val(ref_id), path(ref_files), path(gvcf_file), path(fasta_file)
     path report_template
-    path ref_files
 
     output:
-    tuple val(sample_name), path("genome_creation_report.json"), emit: tb_clockwork_report_json
+    tuple val(sample_name), val(ref_id), path("genome_creation_report.json"), emit: tb_clockwork_report_json
 
     script:
     """

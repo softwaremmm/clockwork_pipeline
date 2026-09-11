@@ -8,26 +8,20 @@ on:
 jobs:
   test:
     name: test
-    runs-on: self-hosted # Uses https://github.com/GlobalPathogenAnalysisService/git_runners
+    runs-on: ubuntu-latest
     steps:
-      - name: print debug data
-        run: |
-          whoami
-          pwd
-          echo java_cmd=$JAVA_CMD
-          printenv
-      - name: clean up # nf-test needs to sudo to remove, so will fail automatic cleanup
-        run: |
-          sudo rm -rf .nf-test || true
 
       - uses: actions/checkout@v4
         with:
-          token: "${{ secrets.PAT_TOKEN }}"
           fetch-depth: 0
 
-      - name: echo versions
+      - name: Setup Nextflow
+        uses: nf-core/setup-nextflow@v1
+
+      - name: Install nf-test
         run: |
-          nextflow -v
+          wget -qO- https://get.nf-test.com | bash
+          sudo mv nf-test /usr/local/bin/
           nf-test version
 
       - name: Login to OCR
@@ -39,8 +33,3 @@ jobs:
 
       - name: Run nf-test
         run: nf-test test
-
-      - name: clean up 2
-        if: always()
-        run: |
-          sudo rm -rf .nf-test || true
