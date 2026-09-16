@@ -1,3 +1,7 @@
+## 2.0.0
+
+- (Breaking) Add ref_id and ref_files to channels so that multiple refs can be supported
+
 ## 1.1.0
 
 - Update output file names:
